@@ -48,8 +48,8 @@ def colorize(text, color):
             import ctypes
             kernel32 = ctypes.windll.kernel32
             kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
-        except:
-            pass  # If it fails, colors just won't work
+        except (OSError, AttributeError, Exception):
+            pass  # If it fails, colors just won't work (acceptable fallback)
     return f"{color}{text}{Colors.RESET}"
 
 
