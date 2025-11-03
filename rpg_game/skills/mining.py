@@ -13,16 +13,16 @@ from .core import add_skill_xp
 
 # Mining system - Ore types with rarity (sell_value determines rarity)
 MINING_ORES = {
-    'copper': {'name': 'Copper Ore', 'type': 'material', 'sell_value': 4, 'description': 'A common copper ore', 'mine_chance': 0.35, 'key': 'copper'},  # Most common
-    'tin': {'name': 'Tin Ore', 'type': 'material', 'sell_value': 5, 'description': 'A common tin ore', 'mine_chance': 0.28, 'key': 'tin'},
-    'clay': {'name': 'Clay', 'type': 'material', 'sell_value': 6, 'description': 'Soft clay for crafting', 'mine_chance': 0.25, 'key': 'clay'},
-    'iron': {'name': 'Iron Ore', 'type': 'material', 'sell_value': 10, 'description': 'A medium-quality iron ore', 'mine_chance': 0.20, 'key': 'iron'},
-    'silver': {'name': 'Silver Ore', 'type': 'material', 'sell_value': 18, 'description': 'A valuable silver ore', 'mine_chance': 0.10, 'key': 'silver'},
-    'gold': {'name': 'Gold Ore', 'type': 'material', 'sell_value': 35, 'description': 'A rare gold ore', 'mine_chance': 0.05, 'key': 'gold'},
-    'sapphire': {'name': 'Sapphire', 'type': 'material', 'sell_value': 75, 'description': 'A beautiful blue gemstone', 'mine_chance': 0.012, 'key': 'sapphire'},
-    'ruby': {'name': 'Ruby', 'type': 'material', 'sell_value': 100, 'description': 'A brilliant red gemstone', 'mine_chance': 0.008, 'key': 'ruby'},
-    'emerald': {'name': 'Emerald', 'type': 'material', 'sell_value': 125, 'description': 'A stunning green gemstone', 'mine_chance': 0.005, 'key': 'emerald'},
-    'diamond': {'name': 'Diamond', 'type': 'material', 'sell_value': 200, 'description': 'The most precious gemstone - extremely rare!', 'mine_chance': 0.002, 'key': 'diamond'},  # Most rare
+    'copper': {'name': 'Copper Ore', 'type': 'material', 'sell_value': 100, 'description': 'A common copper ore', 'mine_chance': 0.35, 'key': 'copper'},  # Most common
+    'tin': {'name': 'Tin Ore', 'type': 'material', 'sell_value': 100, 'description': 'A common tin ore', 'mine_chance': 0.28, 'key': 'tin'},
+    'clay': {'name': 'Clay', 'type': 'material', 'sell_value': 250, 'description': 'Soft clay for crafting', 'mine_chance': 0.25, 'key': 'clay'},
+    'iron': {'name': 'Iron Ore', 'type': 'material', 'sell_value': 750, 'description': 'A medium-quality iron ore', 'mine_chance': 0.20, 'key': 'iron'},
+    'silver': {'name': 'Silver Ore', 'type': 'material', 'sell_value': 2500, 'description': 'A valuable silver ore', 'mine_chance': 0.10, 'key': 'silver'},
+    'gold': {'name': 'Gold Ore', 'type': 'material', 'sell_value': 5000, 'description': 'A rare gold ore', 'mine_chance': 0.05, 'key': 'gold'},
+    'sapphire': {'name': 'Sapphire', 'type': 'material', 'sell_value': 2500, 'description': 'A beautiful blue gemstone', 'mine_chance': 0.012, 'key': 'sapphire'},
+    'ruby': {'name': 'Ruby', 'type': 'material', 'sell_value': 5000, 'description': 'A brilliant red gemstone', 'mine_chance': 0.008, 'key': 'ruby'},
+    'emerald': {'name': 'Emerald', 'type': 'material', 'sell_value': 10000, 'description': 'A stunning green gemstone', 'mine_chance': 0.005, 'key': 'emerald'},
+    'diamond': {'name': 'Diamond', 'type': 'material', 'sell_value': 20000, 'description': 'The most precious gemstone - extremely rare!', 'mine_chance': 0.002, 'key': 'diamond'},  # Most rare
 }
 
 # Mining level requirements

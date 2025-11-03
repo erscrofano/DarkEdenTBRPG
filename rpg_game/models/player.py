@@ -40,7 +40,7 @@ class Player:
         self.kill_streak = 0
         self.total_kills = 0
         self.highest_level_enemy = 0
-        self.highest_tower_floor = 0  # Track highest tower floor reached
+        self.highest_tower_floor = 0  # Track highest Tepes Lair floor reached
         self.achievements = []
         # Skills
         self.fishing_level = STARTING_SKILL_LEVEL

@@ -41,14 +41,14 @@ ALL_ACHIEVEMENTS = {
     'Talisman Master': {'name': 'Talisman Master', 'description': 'Find 25 Talismans', 'gold_reward': 75000, 'type': 'talisman_count', 'requirement': 25},
     'Ultimate Talisman': {'name': 'Ultimate Talisman', 'description': 'Find Talisman of the Hacker', 'gold_reward': 500000, 'type': 'talisman_hacker', 'requirement': 1},
     
-    # Tower/Tepes Lair Achievements
-    'Tower Floor 10': {'name': 'Tower Floor 10', 'description': 'Reach Floor 10 in Tepes lair', 'gold_reward': 2000, 'type': 'tower', 'requirement': 10},
-    'Tower Floor 25': {'name': 'Tower Floor 25', 'description': 'Reach Floor 25 in Tepes lair', 'gold_reward': 10000, 'type': 'tower', 'requirement': 25},
-    'Tower Floor 50': {'name': 'Tower Floor 50', 'description': 'Reach Floor 50 in Tepes lair', 'gold_reward': 50000, 'type': 'tower', 'requirement': 50},
-    'Tower Floor 75': {'name': 'Tower Floor 75', 'description': 'Reach Floor 75 in Tepes lair', 'gold_reward': 125000, 'type': 'tower', 'requirement': 75},
-    'Tower Floor 100': {'name': 'Tower Floor 100', 'description': 'Reach Floor 100 in Tepes lair', 'gold_reward': 300000, 'type': 'tower', 'requirement': 100},
-    'Tower Floor 150': {'name': 'Tower Floor 150', 'description': 'Reach Floor 150 in Tepes lair', 'gold_reward': 750000, 'type': 'tower', 'requirement': 150},
-    'Tower Floor 200': {'name': 'Tower Floor 200', 'description': 'Reach Floor 200 in Tepes lair', 'gold_reward': 1500000, 'type': 'tower', 'requirement': 200},
+    # Tepes Lair Achievements
+    'Lair Floor 10': {'name': 'Lair Floor 10', 'description': 'Reach Floor 10 in Tepes Lair', 'gold_reward': 2000, 'type': 'tower', 'requirement': 10},
+    'Lair Floor 25': {'name': 'Lair Floor 25', 'description': 'Reach Floor 25 in Tepes Lair', 'gold_reward': 10000, 'type': 'tower', 'requirement': 25},
+    'Lair Floor 50': {'name': 'Lair Floor 50', 'description': 'Reach Floor 50 in Tepes Lair', 'gold_reward': 50000, 'type': 'tower', 'requirement': 50},
+    'Lair Floor 75': {'name': 'Lair Floor 75', 'description': 'Reach Floor 75 in Tepes Lair', 'gold_reward': 125000, 'type': 'tower', 'requirement': 75},
+    'Lair Floor 100': {'name': 'Lair Floor 100', 'description': 'Reach Floor 100 in Tepes Lair', 'gold_reward': 300000, 'type': 'tower', 'requirement': 100},
+    'Lair Floor 150': {'name': 'Lair Floor 150', 'description': 'Reach Floor 150 in Tepes Lair', 'gold_reward': 750000, 'type': 'tower', 'requirement': 150},
+    'Lair Floor 200': {'name': 'Lair Floor 200', 'description': 'Reach Floor 200 in Tepes Lair', 'gold_reward': 1500000, 'type': 'tower', 'requirement': 200},
     
     # Fishing Achievements
     'Angler 10': {'name': 'Angler 10', 'description': 'Reach Fishing level 10', 'gold_reward': 1000, 'type': 'fishing_level', 'requirement': 10},

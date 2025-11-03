@@ -2,22 +2,22 @@
 
 
 def get_item_key(item):
-    """Generate a unique key for item stacking (weapons/armor don't stack)"""
-    # Weapons and armor don't stack - each is unique
+    """Generate a unique key for item stacking (weapons/armor don't stack, everything else does)"""
+    # Weapons and armor don't stack - each is unique (can have talismans)
     if item.get('type') in ['weapon', 'armor']:
         return None  # Don't stack
-    # Other items stack by name and all properties that matter
+    # All other items (materials, consumables, tools, talismans) stack by name and type
     return (item.get('name'), item.get('type'), item.get('sell_value'), item.get('heal', 0))
 
 
 def add_item_to_inventory(inventory, item):
     """Add item to inventory with stacking support"""
-    # Weapons and armor don't stack
+    # Weapons and armor don't stack (unique items with potential talismans)
     if item.get('type') in ['weapon', 'armor']:
         inventory.append(item)
         return
     
-    # For stackable items, check if it exists
+    # For stackable items (materials, consumables, tools, talismans), check if it exists
     item_key = get_item_key(item)
     for existing_item in inventory:
         if get_item_key(existing_item) == item_key:

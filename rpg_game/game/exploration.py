@@ -186,16 +186,19 @@ def explore_tepes_lair(player):
             enemy_data['exp'] = int(enemy_data['exp'] * reward_multiplier)
             enemy_data['gold'] = int(enemy_data['gold'] * reward_multiplier)
             
-            # Add tower-specific drops at higher floors
+            # Add Tepes Lair-specific drops at higher floors
             if lair_level >= 10:
                 if random.random() < 0.3:
-                    enemy_data['drops'].append({'item': 'tower_shard', 'chance': 1.0})
+                    enemy_data['drops'].append({'item': 'tepes_shard', 'chance': 1.0})
             if lair_level >= 25:
                 if random.random() < 0.2:
-                    enemy_data['drops'].append({'item': 'tower_core', 'chance': 1.0})
+                    enemy_data['drops'].append({'item': 'tepes_core', 'chance': 1.0})
             if lair_level >= 50:
                 if random.random() < 0.15:
-                    enemy_data['drops'].append({'item': 'ethereal_gem', 'chance': 1.0})
+                    enemy_data['drops'].append({'item': 'lair_essence', 'chance': 1.0})
+            if lair_level >= 75:
+                if random.random() < 0.1:
+                    enemy_data['drops'].append({'item': 'void_crystal', 'chance': 1.0})
             
             enemy = Enemy(
                 name=f"{enemy_data['name']} (Floor {lair_level})",
@@ -217,12 +220,12 @@ def explore_tepes_lair(player):
             won = combat(player, enemy)
             
             if not won:
-                # Player died - lose all tower loot gained this run
+                # Player died - lose all Lair loot gained this run
                 clear_screen()
                 print(colorize("=" * 60, Colors.BRIGHT_RED))
                 print(colorize("💀  LAIR DEATH  💀", Colors.BRIGHT_RED + Colors.BOLD))
                 print(colorize("=" * 60, Colors.BRIGHT_RED))
-                print(f"\n{colorize('You have fallen in Tepes lair!', Colors.BRIGHT_RED)}")
+                print(f"\n{colorize('You have fallen in Tepes Lair!', Colors.BRIGHT_RED)}")
                 print(f"{colorize('All loot gained in this Lair run has been lost!', Colors.YELLOW)}")
                 print(f"\n{colorize('Lost:', Colors.WHITE)}")
                 print(f"  {colorize('Items:', Colors.BRIGHT_YELLOW)} {len(lair_loot_gained)}")

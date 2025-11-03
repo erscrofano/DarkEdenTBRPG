@@ -4,6 +4,7 @@ from ..constants import (
     MAX_SKILL_LEVEL,
     EXP_MULTIPLIER_PER_LEVEL, STARTING_EXP_TO_NEXT, STAT_POINTS_PER_LEVEL
 )
+from .dev_tables import view_all_items, view_all_monsters
 
 
 def dev_menu(player):
@@ -25,14 +26,18 @@ def dev_menu(player):
         print(f"  {colorize('Cooking Level:', Colors.CYAN)} {cooking_level}")
         print(f"  {colorize('Mining Level:', Colors.CYAN)} {mining_level}")
         
-        print(f"\n{colorize('OPTIONS:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
+        print(f"\n{colorize('PLAYER ADJUSTMENTS:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
         print(f"  {colorize('1.', Colors.WHITE)} Set Character Level")
         print(f"  {colorize('2.', Colors.WHITE)} Gain XP (simulate earning)")
         print(f"  {colorize('3.', Colors.WHITE)} Set Gold Amount")
         print(f"  {colorize('4.', Colors.WHITE)} Set Fishing Level")
         print(f"  {colorize('5.', Colors.WHITE)} Set Cooking Level")
         print(f"  {colorize('6.', Colors.WHITE)} Set Mining Level")
-        print(f"  {colorize('7.', Colors.WHITE)} Back to Game")
+        print(f"\n{colorize('GAME DATA:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
+        print(f"  {colorize('7.', Colors.WHITE)} View All Items")
+        print(f"  {colorize('8.', Colors.WHITE)} View All Monsters")
+        print(f"\n{colorize('NAVIGATION:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
+        print(f"  {colorize('9.', Colors.WHITE)} Back to Game")
         print(colorize("=" * 60, Colors.BRIGHT_MAGENTA))
         
         choice = input(f"\n{colorize('Select option:', Colors.BRIGHT_CYAN)} ").strip()
@@ -50,6 +55,10 @@ def dev_menu(player):
         elif choice == '6':
             set_skill_level(player, 'mining')
         elif choice == '7':
+            view_all_items()
+        elif choice == '8':
+            view_all_monsters()
+        elif choice == '9':
             break
         else:
             print(f"\n{colorize('❌ Invalid choice!', Colors.BRIGHT_RED)}")
