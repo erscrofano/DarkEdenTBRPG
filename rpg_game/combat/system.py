@@ -262,48 +262,9 @@ def combat(player, enemy):
                 print(f"\n{colorize('💥', Colors.BRIGHT_RED)} {colorize(enemy.name, Colors.BRIGHT_RED)} {colorize('attacks you for', Colors.WHITE)} {colorize(str(damage_taken), Colors.BRIGHT_RED + Colors.BOLD)} {colorize('damage!', Colors.WHITE)}")
             
             if not player.is_alive():
-                # Death mechanics (OSRS/Kal Online inspired - keep some items)
-                print(f"\n{colorize('💀 You have been defeated!', Colors.BRIGHT_RED + Colors.BOLD)}")
-                
-                # Reset kill streak on death (Kal Online style)
-                lost_streak = player.kill_streak
-                player.kill_streak = 0
-                
-                if lost_streak > 0:
-                    print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'Kill streak lost: {lost_streak}', Colors.YELLOW)}")
-                
-                # Keep 3 most valuable items on death (OSRS-style protection)
-                # Calculate total item value considering quantities
-                item_values = []
-                for item in player.inventory:
-                    qty = get_item_quantity(item)
-                    total_value = item.get('sell_value', 0) * qty
-                    item_values.append((item, total_value, qty))
-                
-                if len(item_values) > DEATH_ITEM_PROTECTION:
-                    # Sort by total value
-                    item_values.sort(key=lambda x: x[1], reverse=True)
-                    kept_items = item_values[:DEATH_ITEM_PROTECTION]
-                    lost_items = item_values[DEATH_ITEM_PROTECTION:]
-                    
-                    # Remove lost items
-                    total_lost = 0
-                    for lost_item, value, qty in lost_items:
-                        remove_item_from_inventory(player.inventory, lost_item, qty)
-                        total_lost += qty
-                    
-                    if total_lost > 0:
-                        print(f"\n{colorize('💔', Colors.YELLOW)} {colorize(f'You lost {total_lost} items on death!', Colors.WHITE)}")
-                        print(f"{colorize('🛡️', Colors.BRIGHT_GREEN)} {colorize(f'Kept your {DEATH_ITEM_PROTECTION} most valuable items.', Colors.BRIGHT_GREEN)}")
-                
-                # Lose 10% of gold on death (Kal Online style)
-                gold_lost = int(player.gold * DEATH_GOLD_LOSS)
-                player.gold -= gold_lost
-                if gold_lost > 0:
-                    print(f"{colorize('💰', Colors.YELLOW)} {colorize(f'Lost {gold_lost} gold on death.', Colors.WHITE)}")
-                
-                input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                return False
+                # Handle death with enhanced death screen and respawn
+                from ..game.death import handle_combat_death
+                return handle_combat_death(player, enemy.name)
         
         elif choice == '2':
             # Use healing item - find all consumables
@@ -419,48 +380,9 @@ def combat(player, enemy):
                 print(f"\n{colorize('💥', Colors.BRIGHT_RED)} {colorize(enemy.name, Colors.BRIGHT_RED)} {colorize('attacks you for', Colors.WHITE)} {colorize(str(damage_taken), Colors.BRIGHT_RED + Colors.BOLD)} {colorize('damage!', Colors.WHITE)}")
             
             if not player.is_alive():
-                # Death mechanics (OSRS/Kal Online inspired - keep some items)
-                print(f"\n{colorize('💀 You have been defeated!', Colors.BRIGHT_RED + Colors.BOLD)}")
-                
-                # Reset kill streak on death (Kal Online style)
-                lost_streak = player.kill_streak
-                player.kill_streak = 0
-                
-                if lost_streak > 0:
-                    print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'Kill streak lost: {lost_streak}', Colors.YELLOW)}")
-                
-                # Keep 3 most valuable items on death (OSRS-style protection)
-                # Calculate total item value considering quantities
-                item_values = []
-                for item in player.inventory:
-                    qty = get_item_quantity(item)
-                    total_value = item.get('sell_value', 0) * qty
-                    item_values.append((item, total_value, qty))
-                
-                if len(item_values) > DEATH_ITEM_PROTECTION:
-                    # Sort by total value
-                    item_values.sort(key=lambda x: x[1], reverse=True)
-                    kept_items = item_values[:DEATH_ITEM_PROTECTION]
-                    lost_items = item_values[DEATH_ITEM_PROTECTION:]
-                    
-                    # Remove lost items
-                    total_lost = 0
-                    for lost_item, value, qty in lost_items:
-                        remove_item_from_inventory(player.inventory, lost_item, qty)
-                        total_lost += qty
-                    
-                    if total_lost > 0:
-                        print(f"\n{colorize('💔', Colors.YELLOW)} {colorize(f'You lost {total_lost} items on death!', Colors.WHITE)}")
-                        print(f"{colorize('🛡️', Colors.BRIGHT_GREEN)} {colorize(f'Kept your {DEATH_ITEM_PROTECTION} most valuable items.', Colors.BRIGHT_GREEN)}")
-                
-                # Lose 10% of gold on death (Kal Online style)
-                gold_lost = int(player.gold * DEATH_GOLD_LOSS)
-                player.gold -= gold_lost
-                if gold_lost > 0:
-                    print(f"{colorize('💰', Colors.YELLOW)} {colorize(f'Lost {gold_lost} gold on death.', Colors.WHITE)}")
-                
-                input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                return False
+                # Handle death with enhanced death screen and respawn
+                from ..game.death import handle_combat_death
+                return handle_combat_death(player, enemy.name)
         elif choice == '4' and not player._guaranteed_flee_used:
             # Guaranteed Flee safety valve
             player._guaranteed_flee_used = True
@@ -508,9 +430,9 @@ def combat(player, enemy):
                     print(f"{colorize('💥', Colors.BRIGHT_RED)} {colorize(enemy.name, Colors.BRIGHT_RED)} {colorize('attacks you for', Colors.WHITE)} {colorize(str(damage_taken), Colors.BRIGHT_RED + Colors.BOLD)} {colorize('damage!', Colors.WHITE)}")
                 
                 if not player.is_alive():
-                    print(f"\n{colorize('💀 You have been defeated!', Colors.BRIGHT_RED + Colors.BOLD)}")
-                    input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                    return False
+                    # Handle death with enhanced death screen and respawn
+                    from ..game.death import handle_combat_death
+                    return handle_combat_death(player, enemy.name)
         else:
             print(f"\n{colorize('❌ Invalid choice!', Colors.BRIGHT_RED)}")
             input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")

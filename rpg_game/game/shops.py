@@ -384,7 +384,7 @@ def army_guild(player):
             _buy_weapon_from_list(player, GUNS, "Guns")
         
         elif menu_choice == '2':
-            # Reuse armor shop logic
+            # Buy Armor
             clear_screen()
             print(colorize("=" * 60, Colors.BRIGHT_RED))
             print(colorize("🛡️  BUY ARMOR SETS  🛡️", Colors.BRIGHT_BLUE + Colors.BOLD))
@@ -392,62 +392,7 @@ def army_guild(player):
             print(f"\n{colorize(f'Your Gold: {player.gold}', Colors.BRIGHT_YELLOW + Colors.BOLD)}")
             print(colorize("─" * 60, Colors.BRIGHT_RED))
             print(f"\n{colorize('AVAILABLE ARMOR SETS:', Colors.BRIGHT_WHITE + Colors.BOLD)}\n")
-            
-            armor_list = list(ARMOR_SETS.items())
-            for i, (key, armor) in enumerate(armor_list, 1):
-                grade_color = Colors.WHITE
-                if armor['grade'] >= 50:
-                    grade_color = Colors.BRIGHT_MAGENTA
-                elif armor['grade'] >= 30:
-                    grade_color = Colors.BRIGHT_CYAN
-                elif armor['grade'] >= 20:
-                    grade_color = Colors.BRIGHT_GREEN
-                
-                grade_text = f"G{armor['grade']}"
-                print(f"  {colorize(str(i) + '.', Colors.WHITE)} {colorize(armor['name'], grade_color)} {colorize('(' + grade_text + ')', Colors.WHITE)}")
-                print(f"     {colorize('Defense:', Colors.BLUE)} {colorize('+' + str(armor['defense']), Colors.BRIGHT_BLUE)} | {colorize('Cost:', Colors.BRIGHT_YELLOW)} {colorize(str(armor['cost']) + 'g', Colors.BRIGHT_YELLOW)}")
-            
-            print(f"\n  {colorize(str(len(armor_list) + 1) + '.', Colors.BRIGHT_BLUE)} Back")
-            print(colorize("=" * 60, Colors.BRIGHT_RED))
-            
-            choice = input(f"\n{colorize('What would you like to buy?', Colors.BRIGHT_CYAN)} ").strip()
-            
-            try:
-                choice_num = int(choice)
-                if choice_num == len(armor_list) + 1:
-                    continue
-                
-                if 1 <= choice_num <= len(armor_list):
-                    armor_key, armor = armor_list[choice_num - 1]
-                    
-                    if player.gold >= armor['cost']:
-                        player.gold -= armor['cost']
-                        
-                        if player.armor:
-                            old_armor = player.armor.copy()
-                            add_item_to_inventory(player.inventory, old_armor)
-                            unequip_msg = f"Unequipped {old_armor['name']}"
-                            print(f"\n{colorize('🔄', Colors.BRIGHT_BLUE)} {colorize(unequip_msg, Colors.WHITE)}")
-                        
-                        player.armor = armor.copy()
-                        equip_msg = f"Equipped {armor['name']}!"
-                        print(f"{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(equip_msg, Colors.BRIGHT_GREEN)}")
-                        
-                        # Check gear tier achievements
-                        from ..achievements.system import check_achievements
-                        check_achievements(player, 'gear_tier')
-                        
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                    else:
-                        no_gold_msg = "You don't have enough gold!"
-                        print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(no_gold_msg, Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                else:
-                    print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize('Invalid choice!', Colors.WHITE)}")
-                    input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-            except ValueError:
-                print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize('Invalid choice!', Colors.WHITE)}")
-                input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+            _buy_armor_from_list(player)
         
         elif menu_choice == '3':
             sell_items_menu(player, "Army Guild")
@@ -500,7 +445,7 @@ def cleric_guild(player):
             _buy_weapon_from_list(player, MACES, "Maces")
         
         elif menu_choice == '3':
-            # Reuse armor shop logic
+            # Buy Armor
             clear_screen()
             print(colorize("=" * 60, Colors.BRIGHT_MAGENTA))
             print(colorize("🛡️  BUY ARMOR SETS  🛡️", Colors.BRIGHT_BLUE + Colors.BOLD))
@@ -508,62 +453,7 @@ def cleric_guild(player):
             print(f"\n{colorize(f'Your Gold: {player.gold}', Colors.BRIGHT_YELLOW + Colors.BOLD)}")
             print(colorize("─" * 60, Colors.BRIGHT_MAGENTA))
             print(f"\n{colorize('AVAILABLE ARMOR SETS:', Colors.BRIGHT_WHITE + Colors.BOLD)}\n")
-            
-            armor_list = list(ARMOR_SETS.items())
-            for i, (key, armor) in enumerate(armor_list, 1):
-                grade_color = Colors.WHITE
-                if armor['grade'] >= 50:
-                    grade_color = Colors.BRIGHT_MAGENTA
-                elif armor['grade'] >= 30:
-                    grade_color = Colors.BRIGHT_CYAN
-                elif armor['grade'] >= 20:
-                    grade_color = Colors.BRIGHT_GREEN
-                
-                grade_text = f"G{armor['grade']}"
-                print(f"  {colorize(str(i) + '.', Colors.WHITE)} {colorize(armor['name'], grade_color)} {colorize('(' + grade_text + ')', Colors.WHITE)}")
-                print(f"     {colorize('Defense:', Colors.BLUE)} {colorize('+' + str(armor['defense']), Colors.BRIGHT_BLUE)} | {colorize('Cost:', Colors.BRIGHT_YELLOW)} {colorize(str(armor['cost']) + 'g', Colors.BRIGHT_YELLOW)}")
-            
-            print(f"\n  {colorize(str(len(armor_list) + 1) + '.', Colors.BRIGHT_BLUE)} Back")
-            print(colorize("=" * 60, Colors.BRIGHT_MAGENTA))
-            
-            choice = input(f"\n{colorize('What would you like to buy?', Colors.BRIGHT_CYAN)} ").strip()
-            
-            try:
-                choice_num = int(choice)
-                if choice_num == len(armor_list) + 1:
-                    continue
-                
-                if 1 <= choice_num <= len(armor_list):
-                    armor_key, armor = armor_list[choice_num - 1]
-                    
-                    if player.gold >= armor['cost']:
-                        player.gold -= armor['cost']
-                        
-                        if player.armor:
-                            old_armor = player.armor.copy()
-                            add_item_to_inventory(player.inventory, old_armor)
-                            unequip_msg = f"Unequipped {old_armor['name']}"
-                            print(f"\n{colorize('🔄', Colors.BRIGHT_BLUE)} {colorize(unequip_msg, Colors.WHITE)}")
-                        
-                        player.armor = armor.copy()
-                        equip_msg = f"Equipped {armor['name']}!"
-                        print(f"{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(equip_msg, Colors.BRIGHT_GREEN)}")
-                        
-                        # Check gear tier achievements
-                        from ..achievements.system import check_achievements
-                        check_achievements(player, 'gear_tier')
-                        
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                    else:
-                        no_gold_msg = "You don't have enough gold!"
-                        print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(no_gold_msg, Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                else:
-                    print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize('Invalid choice!', Colors.WHITE)}")
-                    input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-            except ValueError:
-                print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize('Invalid choice!', Colors.WHITE)}")
-                input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+            _buy_armor_from_list(player)
         
         elif menu_choice == '4':
             sell_items_menu(player, "Cleric Guild")

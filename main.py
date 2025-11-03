@@ -80,293 +80,288 @@ def migrate_old_save():
 
 
 def main():
-    clear_screen()
-    print("=" * 50)
-    print("⚔️  TEXT-BASED RPG GAME  ⚔️")
-    print("=" * 50)
-    print("\nWelcome, adventurer!")
-    
-    # Migrate old saves if they exist
-    migrate_old_save()
-    
-    # Show save slot selection menu
-    slot_name, is_new = select_save_slot_menu(allow_new=True, allow_delete=False)
-    
-    if slot_name is None:
-        # User cancelled
-        print("\n👋 Thanks for playing!")
-        return
-    
-    player = None
-    
-    if is_new:
-        # Create new character
-        print(f"\n{colorize('Creating new character in save slot:', Colors.BRIGHT_GREEN)} {colorize(slot_name, Colors.BRIGHT_CYAN)}")
-        while True:
-            name = input(f"\n{colorize('Enter your name:', Colors.BRIGHT_CYAN)} ").strip()
-            is_valid, error_msg = validate_player_name(name)
-            if is_valid:
-                break
-            elif not name:  # Empty name defaults to "Hero"
-                name = "Hero"
-                break
-            else:
-                print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(error_msg, Colors.WHITE)}")
-        player = Player(name)
-        player.save_slot = slot_name
-        print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Welcome, {player.name}!', Colors.BRIGHT_GREEN)}")
-        print(f"⚔️ You start with a {player.weapon['name']} (+{player.weapon['attack']} Attack)")
-        print(f"💰 You have {player.gold} gold to start your adventure!")
-        input("\nPress Enter to begin...")
-    else:
-        # Load existing save
-        saved_player = load_game(slot_name)
-        if saved_player:
-            player = saved_player
-            print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Welcome back, {player.name}!', Colors.BRIGHT_GREEN)}")
-            input("\nPress Enter to continue...")
-        else:
-            # Slot exists but save is corrupted or missing - ask to create new
-            print(f"\n{colorize('⚠️', Colors.YELLOW)} {colorize(f'Could not load save slot "{slot_name}"', Colors.WHITE)}")
-            create_new = input(f"{colorize('Create a new character in this slot? (y/n): ', Colors.WHITE)}").strip().lower()
-            if create_new == 'y':
-                while True:
-                    name = input(f"\n{colorize('Enter your name:', Colors.BRIGHT_CYAN)} ").strip()
-                    is_valid, error_msg = validate_player_name(name)
-                    if is_valid:
-                        break
-                    elif not name:
-                        name = "Hero"
-                        break
-                    else:
-                        print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(error_msg, Colors.WHITE)}")
-                player = Player(name)
-                player.save_slot = slot_name
-                print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Welcome, {player.name}!', Colors.BRIGHT_GREEN)}")
-                print(f"⚔️ You start with a {player.weapon['name']} (+{player.weapon['attack']} Attack)")
-                print(f"💰 You have {player.gold} gold to start your adventure!")
-                input("\nPress Enter to begin...")
-            else:
-                print("\n👋 Thanks for playing!")
-                return
-    
-    if player is None:
-        return
-    
-    # Use player's saved location, or default to eslania_city for new games
-    current_location = player.current_location
-    game_running = True
-    
-    while game_running and player.is_alive():
-        # Sync player's location with current_location at the start of each loop
-        player.current_location = current_location
-        
-        if current_location == 'town':
-            # Town is now an alias for Eslania City (backward compatibility)
-            current_location = 'eslania_city'
-            player.current_location = 'eslania_city'
-        
-        if current_location == 'eslania_city':
-            choice = eslania_city_menu(player)
-            
-            # Check for hidden dev menu (1337)
-            if choice == '1337':
-                dev_menu(player)
-                continue
-            
-            if choice == '1':
-                knight_guild(player)
-            elif choice == '2':
-                army_guild(player)
-            elif choice == '3':
-                cleric_guild(player)
-            elif choice == '4':
-                general_store(player)
-            elif choice == '5':
-                fishing_store(player)
-            elif choice == '6':
-                mining_store(player)
-            elif choice == '7':
-                hospital(player)
-            elif choice == '8':
-                pimping_service(player)
-            elif choice == '9':
-                # Training Zone
-                training_simulator(player)
-            elif choice == '10':
-                # Kitchen (Cook Fish)
-                cook_fish(player)
-            elif choice == '11':
-                # Underground Waterways
-                result = explore_location(player, 'underground_waterways')
-                if result == 'game_over':
-                    game_running = False
-                elif result == 'previous':
-                    current_location = 'eslania_city'
-                else:
-                    current_location = result
-            elif choice == '12':
-                # Eslania Dungeon
-                floors = {'b1': {'level': 5, 'multiplier': 1.0}, 'b2': {'level': 10, 'multiplier': 1.2}, 'b3': {'level': 15, 'multiplier': 1.4}}
-                result = explore_multi_floor_dungeon(player, 'eslania_dungeon', floors, 'b1')
-                if result == 'previous':
-                    current_location = 'eslania_city'
-            elif choice == '13':
-                # Go Fishing
-                go_fishing(player)
-            elif choice == '14':
-                # Go Mining
-                go_mining(player)
-            elif choice == '15':
-                # Travel to Another Location
-                travel_choice = locations_menu(player)
-                if travel_choice and travel_choice != '7':  # '7' means Back
-                    new_location, success = handle_travel(player, travel_choice, current_location)
-                    if success:
-                        if new_location == 'game_over':
-                            game_running = False
-                        else:
-                            current_location = new_location
-                            player.current_location = new_location
-            elif choice == '16':
-                clear_screen()
-                print(player.get_stats())
-                if player.stat_points > 0:
-                    print(f"\n{colorize('💡 You have banked stat points available!', Colors.BRIGHT_YELLOW + Colors.BOLD)}")
-                    allocate_choice = input(f"\n{colorize('Would you like to allocate stat points? (y/n): ', Colors.BRIGHT_CYAN)}").strip().lower()
-                    if allocate_choice == 'y':
-                        allocate_stats(player)
-                input("\nPress Enter to continue...")
-            elif choice == '17':
-                view_inventory(player)
-            elif choice == '18':
-                view_achievements(player)
-            elif choice == '19':
-                if player.stat_points > 0:
-                    allocate_stats(player)
-                else:
-                    # No stat points - option 19 is Save Game
-                    if save_game(player):
-                        print("\n✅ Game saved successfully!")
-                    else:
-                        print("\n❌ Failed to save game!")
-                    input("\nPress Enter to continue...")
-            elif choice == '20':
-                if player.stat_points > 0:
-                    if save_game(player):
-                        print("\n✅ Game saved successfully!")
-                    else:
-                        print("\n❌ Failed to save game!")
-                    input("\nPress Enter to continue...")
-                else:
-                    save_choice = input("\n💾 Save before quitting? (y/n): ").strip().lower()
-                    if save_choice == 'y':
-                        if save_game(player):
-                            print("\n✅ Game saved successfully!")
-                        else:
-                            print("\n❌ Failed to save game!")
-                        input("\nPress Enter to continue...")
-                    print("\n👋 Thanks for playing!")
-                    game_running = False
-            elif choice == '21':
-                if player.stat_points > 0:
-                    save_choice = input("\n💾 Save before quitting? (y/n): ").strip().lower()
-                    if save_choice == 'y':
-                        if save_game(player):
-                            print("\n✅ Game saved successfully!")
-                        else:
-                            print("\n❌ Failed to save game!")
-                        input("\nPress Enter to continue...")
-                    print("\n👋 Thanks for playing!")
-                    game_running = False
-            else:
-                print("\n❌ Invalid choice!")
-                input("\nPress Enter to continue...")
-        
-        elif current_location == 'perona_outpost':
-            choice = perona_outpost_menu(player)
-            
-            # Check for hidden dev menu (1337)
-            if choice == '1337':
-                dev_menu(player)
-                continue
-            
-            if choice == '1':
-                floors = {'b1': {'level': 8, 'multiplier': 1.0}, 'b2': {'level': 12, 'multiplier': 1.3}, 'b3': {'level': 18, 'multiplier': 1.6}}
-                result = explore_multi_floor_dungeon(player, 'asylion_dungeon', floors, 'b1')
-                if result == 'previous':
-                    current_location = 'perona_outpost'
-            elif choice == '2':
-                # Travel to Another Location
-                travel_choice = locations_menu(player)
-                if travel_choice and travel_choice != '7':  # '7' means Back
-                    new_location, success = handle_travel(player, travel_choice, current_location)
-                    if success:
-                        if new_location == 'game_over':
-                            game_running = False
-                        else:
-                            current_location = new_location
-                            player.current_location = new_location
-            elif choice == '3':  # View Stats
-                clear_screen()
-                print(player.get_stats())
-                input("\nPress Enter to continue...")
-            elif choice == '4':  # View Inventory
-                view_inventory(player)
-            elif choice == '5':  # View Achievements
-                view_achievements(player)
-            elif choice == '6':  # Allocate Stats or Save Game
-                if player.stat_points > 0:
-                    allocate_stats(player)
-                else:
-                    if save_game(player):
-                        print("\n✅ Game saved successfully!")
-                    else:
-                        print("\n❌ Failed to save game!")
-                    input("\nPress Enter to continue...")
-            elif choice == '7':  # Save Game or Quit Game
-                if player.stat_points > 0:
-                    if save_game(player):
-                        print("\n✅ Game saved successfully!")
-                    else:
-                        print("\n❌ Failed to save game!")
-                    input("\nPress Enter to continue...")
-                else:
-                    save_choice = input("\n💾 Save before quitting? (y/n): ").strip().lower()
-                    if save_choice == 'y':
-                        if save_game(player):
-                            print("\n✅ Game saved successfully!")
-                        else:
-                            print("\n❌ Failed to save game!")
-                        input("\nPress Enter to continue...")
-                    print("\n👋 Thanks for playing!")
-                    game_running = False
-            elif choice == '8':  # Quit Game
-                if player.stat_points > 0:
-                    save_choice = input("\n💾 Save before quitting? (y/n): ").strip().lower()
-                    if save_choice == 'y':
-                        if save_game(player):
-                            print("\n✅ Game saved successfully!")
-                        else:
-                            print("\n❌ Failed to save game!")
-                        input("\nPress Enter to continue...")
-                    print("\n👋 Thanks for playing!")
-                    game_running = False
-            else:
-                print("\n❌ Invalid choice!")
-                input("\nPress Enter to continue...")
-        
-    
-    if not player.is_alive():
+    """Main game loop with save slot selection"""
+    # Main menu loop - returns here after death
+    while True:
         clear_screen()
         print("=" * 50)
-        print("💀 GAME OVER 💀")
+        print("⚔️  TEXT-BASED RPG GAME  ⚔️")
         print("=" * 50)
-        print(f"\n{player.name} has fallen in battle...")
-        print(f"\nFinal Level: {player.level}")
-        print(f"Final Gold: {player.gold}")
-        print("\nThanks for playing!")
-        input("\nPress Enter to exit...")
+        print("\nWelcome, adventurer!")
+        
+        # Migrate old saves if they exist
+        migrate_old_save()
+        
+        # Show save slot selection menu
+        slot_name, is_new = select_save_slot_menu(allow_new=True, allow_delete=False)
+    
+        if slot_name is None:
+            # User cancelled
+            print("\n👋 Thanks for playing!")
+            return
+    
+        player = None
+        
+        if is_new:
+            # Create new character
+            print(f"\n{colorize('Creating new character in save slot:', Colors.BRIGHT_GREEN)} {colorize(slot_name, Colors.BRIGHT_CYAN)}")
+            while True:
+                name = input(f"\n{colorize('Enter your name:', Colors.BRIGHT_CYAN)} ").strip()
+                is_valid, error_msg = validate_player_name(name)
+                if is_valid:
+                    break
+                elif not name:  # Empty name defaults to "Hero"
+                    name = "Hero"
+                    break
+                else:
+                    print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(error_msg, Colors.WHITE)}")
+            player = Player(name)
+            player.save_slot = slot_name
+            print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Welcome, {player.name}!', Colors.BRIGHT_GREEN)}")
+            print(f"⚔️ You start with a {player.weapon['name']} (+{player.weapon['attack']} Attack)")
+            print(f"💰 You have {player.gold} gold to start your adventure!")
+            input("\nPress Enter to begin...")
+        else:
+            # Load existing save
+            saved_player = load_game(slot_name)
+            if saved_player:
+                player = saved_player
+                print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Welcome back, {player.name}!', Colors.BRIGHT_GREEN)}")
+                input("\nPress Enter to continue...")
+            else:
+                # Slot exists but save is corrupted or missing - ask to create new
+                print(f"\n{colorize('⚠️', Colors.YELLOW)} {colorize(f'Could not load save slot "{slot_name}"', Colors.WHITE)}")
+                create_new = input(f"{colorize('Create a new character in this slot? (y/n): ', Colors.WHITE)}").strip().lower()
+                if create_new == 'y':
+                    while True:
+                        name = input(f"\n{colorize('Enter your name:', Colors.BRIGHT_CYAN)} ").strip()
+                        is_valid, error_msg = validate_player_name(name)
+                        if is_valid:
+                            break
+                        elif not name:
+                            name = "Hero"
+                            break
+                        else:
+                            print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(error_msg, Colors.WHITE)}")
+                    player = Player(name)
+                    player.save_slot = slot_name
+                    print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Welcome, {player.name}!', Colors.BRIGHT_GREEN)}")
+                    print(f"⚔️ You start with a {player.weapon['name']} (+{player.weapon['attack']} Attack)")
+                    print(f"💰 You have {player.gold} gold to start your adventure!")
+                    input("\nPress Enter to begin...")
+                else:
+                    # User declined to create new character, go back to save selection
+                    continue
+        
+        if player is None:
+            continue
+    
+        # Use player's saved location, or default to eslania_city for new games
+        current_location = player.current_location
+        game_running = True
+        
+        while game_running:
+            # Sync player's location with current_location at the start of each loop
+            player.current_location = current_location
+            
+            if current_location == 'town':
+                # Town is now an alias for Eslania City (backward compatibility)
+                current_location = 'eslania_city'
+                player.current_location = 'eslania_city'
+            
+            if current_location == 'eslania_city':
+                choice = eslania_city_menu(player)
+                
+                # Check for hidden dev menu (1337)
+                if choice == '1337':
+                    dev_menu(player)
+                    continue
+                
+                if choice == '1':
+                    knight_guild(player)
+                elif choice == '2':
+                    army_guild(player)
+                elif choice == '3':
+                    cleric_guild(player)
+                elif choice == '4':
+                    general_store(player)
+                elif choice == '5':
+                    fishing_store(player)
+                elif choice == '6':
+                    mining_store(player)
+                elif choice == '7':
+                    hospital(player)
+                elif choice == '8':
+                    pimping_service(player)
+                elif choice == '9':
+                    # Training Zone
+                    training_simulator(player)
+                elif choice == '10':
+                    # Kitchen (Cook Fish)
+                    cook_fish(player)
+                elif choice == '11':
+                    # Underground Waterways
+                    result = explore_location(player, 'underground_waterways')
+                    if result == 'game_over':
+                        game_running = False
+                    elif result == 'previous':
+                        current_location = 'eslania_city'
+                    else:
+                        current_location = result
+                elif choice == '12':
+                    # Eslania Dungeon
+                    floors = {'b1': {'level': 5, 'multiplier': 1.0}, 'b2': {'level': 10, 'multiplier': 1.2}, 'b3': {'level': 15, 'multiplier': 1.4}}
+                    result = explore_multi_floor_dungeon(player, 'eslania_dungeon', floors, 'b1')
+                    if result == 'previous':
+                        current_location = 'eslania_city'
+                elif choice == '13':
+                    # Go Fishing
+                    go_fishing(player)
+                elif choice == '14':
+                    # Go Mining
+                    go_mining(player)
+                elif choice == '15':
+                    # Travel to Another Location
+                    travel_choice = locations_menu(player)
+                    if travel_choice and travel_choice != '7':  # '7' means Back
+                        new_location, success = handle_travel(player, travel_choice, current_location)
+                        if success:
+                            if new_location == 'game_over':
+                                game_running = False
+                            else:
+                                current_location = new_location
+                                player.current_location = new_location
+                elif choice == '16':
+                    clear_screen()
+                    print(player.get_stats())
+                    if player.stat_points > 0:
+                        print(f"\n{colorize('💡 You have banked stat points available!', Colors.BRIGHT_YELLOW + Colors.BOLD)}")
+                        allocate_choice = input(f"\n{colorize('Would you like to allocate stat points? (y/n): ', Colors.BRIGHT_CYAN)}").strip().lower()
+                        if allocate_choice == 'y':
+                            allocate_stats(player)
+                    input("\nPress Enter to continue...")
+                elif choice == '17':
+                    view_inventory(player)
+                elif choice == '18':
+                    view_achievements(player)
+                elif choice == '19':
+                    if player.stat_points > 0:
+                        allocate_stats(player)
+                    else:
+                        # No stat points - option 19 is Save Game
+                        if save_game(player):
+                            print("\n✅ Game saved successfully!")
+                        else:
+                            print("\n❌ Failed to save game!")
+                        input("\nPress Enter to continue...")
+                elif choice == '20':
+                    if player.stat_points > 0:
+                        if save_game(player):
+                            print("\n✅ Game saved successfully!")
+                        else:
+                            print("\n❌ Failed to save game!")
+                        input("\nPress Enter to continue...")
+                    else:
+                        save_choice = input("\n💾 Save before quitting? (y/n): ").strip().lower()
+                        if save_choice == 'y':
+                            if save_game(player):
+                                print("\n✅ Game saved successfully!")
+                            else:
+                                print("\n❌ Failed to save game!")
+                            input("\nPress Enter to continue...")
+                        print("\n👋 Thanks for playing!")
+                        game_running = False
+                elif choice == '21':
+                    if player.stat_points > 0:
+                        save_choice = input("\n💾 Save before quitting? (y/n): ").strip().lower()
+                        if save_choice == 'y':
+                            if save_game(player):
+                                print("\n✅ Game saved successfully!")
+                            else:
+                                print("\n❌ Failed to save game!")
+                            input("\nPress Enter to continue...")
+                        print("\n👋 Thanks for playing!")
+                        game_running = False
+                else:
+                    print("\n❌ Invalid choice!")
+                    input("\nPress Enter to continue...")
+            
+            elif current_location == 'perona_outpost':
+                choice = perona_outpost_menu(player)
+                
+                # Check for hidden dev menu (1337)
+                if choice == '1337':
+                    dev_menu(player)
+                    continue
+                
+                if choice == '1':
+                    floors = {'b1': {'level': 8, 'multiplier': 1.0}, 'b2': {'level': 12, 'multiplier': 1.3}, 'b3': {'level': 18, 'multiplier': 1.6}}
+                    result = explore_multi_floor_dungeon(player, 'asylion_dungeon', floors, 'b1')
+                    if result == 'previous':
+                        current_location = 'perona_outpost'
+                elif choice == '2':
+                    # Travel to Another Location
+                    travel_choice = locations_menu(player)
+                    if travel_choice and travel_choice != '7':  # '7' means Back
+                        new_location, success = handle_travel(player, travel_choice, current_location)
+                        if success:
+                            if new_location == 'game_over':
+                                game_running = False
+                            else:
+                                current_location = new_location
+                                player.current_location = new_location
+                elif choice == '3':  # View Stats
+                    clear_screen()
+                    print(player.get_stats())
+                    input("\nPress Enter to continue...")
+                elif choice == '4':  # View Inventory
+                    view_inventory(player)
+                elif choice == '5':  # View Achievements
+                    view_achievements(player)
+                elif choice == '6':  # Allocate Stats or Save Game
+                    if player.stat_points > 0:
+                        allocate_stats(player)
+                    else:
+                        if save_game(player):
+                            print("\n✅ Game saved successfully!")
+                        else:
+                            print("\n❌ Failed to save game!")
+                        input("\nPress Enter to continue...")
+                elif choice == '7':  # Save Game or Quit Game
+                    if player.stat_points > 0:
+                        if save_game(player):
+                            print("\n✅ Game saved successfully!")
+                        else:
+                            print("\n❌ Failed to save game!")
+                        input("\nPress Enter to continue...")
+                    else:
+                        save_choice = input("\n💾 Save before quitting? (y/n): ").strip().lower()
+                        if save_choice == 'y':
+                            if save_game(player):
+                                print("\n✅ Game saved successfully!")
+                            else:
+                                print("\n❌ Failed to save game!")
+                            input("\nPress Enter to continue...")
+                        print("\n👋 Thanks for playing!")
+                        game_running = False
+                elif choice == '8':  # Quit Game
+                    if player.stat_points > 0:
+                        save_choice = input("\n💾 Save before quitting? (y/n): ").strip().lower()
+                        if save_choice == 'y':
+                            if save_game(player):
+                                print("\n✅ Game saved successfully!")
+                            else:
+                                print("\n❌ Failed to save game!")
+                            input("\nPress Enter to continue...")
+                        print("\n👋 Thanks for playing!")
+                        game_running = False
+                else:
+                    print("\n❌ Invalid choice!")
+                    input("\nPress Enter to continue...")
+        
+    
+    # Game loop has ended - if player died, they need to reload
+    # The death screen has already been shown in combat, just exit cleanly
 
 
 if __name__ == "__main__":
