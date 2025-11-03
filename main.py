@@ -18,6 +18,7 @@ from rpg_game.game import (
     allocate_stats, locations_menu, eslania_city_menu, perona_outpost_menu,
     knight_guild, army_guild, cleric_guild, general_store, fishing_store, mining_store, pimping_service
 )
+from rpg_game.game.dev_menu import dev_menu
 from rpg_game.skills import go_fishing, go_mining, cook_fish, training_simulator
 from rpg_game.utils.input_validation import validate_player_name
 from rpg_game.game.travel import handle_travel
@@ -168,6 +169,11 @@ def main():
         if current_location == 'eslania_city':
             choice = eslania_city_menu(player)
             
+            # Check for hidden dev menu (1337)
+            if choice == '1337':
+                dev_menu(player)
+                continue
+            
             if choice == '1':
                 knight_guild(player)
             elif choice == '2':
@@ -279,6 +285,11 @@ def main():
         
         elif current_location == 'perona_outpost':
             choice = perona_outpost_menu(player)
+            
+            # Check for hidden dev menu (1337)
+            if choice == '1337':
+                dev_menu(player)
+                continue
             
             if choice == '1':
                 floors = {'b1': {'level': 8, 'multiplier': 1.0}, 'b2': {'level': 12, 'multiplier': 1.3}, 'b3': {'level': 18, 'multiplier': 1.6}}
