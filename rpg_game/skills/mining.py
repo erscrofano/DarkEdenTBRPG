@@ -22,7 +22,9 @@ MINING_ORES = {
     'sapphire': {'name': 'Sapphire', 'type': 'material', 'sell_value': 2500, 'description': 'A beautiful blue gemstone', 'mine_chance': 0.012, 'key': 'sapphire'},
     'ruby': {'name': 'Ruby', 'type': 'material', 'sell_value': 5000, 'description': 'A brilliant red gemstone', 'mine_chance': 0.008, 'key': 'ruby'},
     'emerald': {'name': 'Emerald', 'type': 'material', 'sell_value': 10000, 'description': 'A stunning green gemstone', 'mine_chance': 0.005, 'key': 'emerald'},
-    'diamond': {'name': 'Diamond', 'type': 'material', 'sell_value': 20000, 'description': 'The most precious gemstone - extremely rare!', 'mine_chance': 0.002, 'key': 'diamond'},  # Most rare
+    'diamond': {'name': 'Diamond', 'type': 'material', 'sell_value': 20000, 'description': 'The most precious gemstone - extremely rare!', 'mine_chance': 0.002, 'key': 'diamond'},
+    'dragonstone': {'name': 'Dragonstone', 'type': 'material', 'sell_value': 40000, 'description': 'An ancient crimson gem said to contain dragon essence', 'mine_chance': 0.001, 'key': 'dragonstone'},
+    'onyx': {'name': 'Onyx', 'type': 'material', 'sell_value': 80000, 'description': 'A pitch-black gemstone of legendary rarity', 'mine_chance': 0.0005, 'key': 'onyx'},  # Most rare
 }
 
 # Mining level requirements
@@ -37,7 +39,9 @@ MINING_LEVEL_REQUIREMENTS = {
     'sapphire': 1,
     'ruby': 1,
     'emerald': 1,
-    'diamond': 1
+    'diamond': 1,
+    'dragonstone': 1,
+    'onyx': 1
 }
 
 # Mining XP awards
@@ -49,10 +53,12 @@ MINING_XP_AWARDS = {
     'silver': 40,
     'gold': 60,
     # Gems give bonus XP based on rarity
-    'sapphire': 100,   # Lowest gem
+    'sapphire': 100,
     'ruby': 150,
     'emerald': 200,
-    'diamond': 300     # Highest gem
+    'diamond': 300,
+    'dragonstone': 400,
+    'onyx': 500  # Highest gem
 }
 
 
@@ -62,7 +68,7 @@ def get_mining_catch(player, eligible_ores):
         return None, None
     
     # Separate gems from regular ores
-    gems = ['sapphire', 'ruby', 'emerald', 'diamond']
+    gems = ['sapphire', 'ruby', 'emerald', 'diamond', 'dragonstone', 'onyx']
     low_tier_ores = ['copper', 'tin']  # Low tier ores that should remain common
     
     from ..constants import MINING_LEVEL_BOOST_MULTIPLIER, MINING_LEVEL_BOOST_MAX

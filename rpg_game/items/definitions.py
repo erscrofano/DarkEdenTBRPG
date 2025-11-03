@@ -90,11 +90,14 @@ ARMOR_SETS = {
     'g70': {'name': 'G70 Agrippa Armor', 'grade': 70, 'type': 'armor', 'defense': 80, 'cost': 84000, 'sell_value': 42000}
 }
 
-# Potions
+# Healing Ampuls - Available in General Store and as monster drops
 POTIONS = {
-    'health_small': {'name': 'Minor Health Potion', 'type': 'consumable', 'heal': 30, 'cost': 20, 'sell_value': 10},
-    'health_medium': {'name': 'Health Potion', 'type': 'consumable', 'heal': 60, 'cost': 50, 'sell_value': 25},
-    'health_large': {'name': 'Greater Health Potion', 'type': 'consumable', 'heal': 100, 'cost': 100, 'sell_value': 50}
+    'mini_healing_ampul': {'name': 'Mini Healing Ampul', 'type': 'consumable', 'heal': 40, 'cost': 16, 'sell_value': 8},
+    'light_healing_ampul': {'name': 'Light Healing Ampul', 'type': 'consumable', 'heal': 80, 'cost': 32, 'sell_value': 16},
+    'half_healing_ampul': {'name': 'Half Healing Ampul', 'type': 'consumable', 'heal': 120, 'cost': 64, 'sell_value': 32},
+    'large_healing_ampul': {'name': 'Large Healing Ampul', 'type': 'consumable', 'heal': 200, 'cost': 128, 'sell_value': 64},
+    'full_healing_ampul': {'name': 'Full Healing Ampul', 'type': 'consumable', 'heal': 300, 'cost': 256, 'sell_value': 128},
+    'healing_bottle': {'name': 'Healing Bottle', 'type': 'consumable', 'heal': 400, 'cost': 512, 'sell_value': 256}
 }
 
 # Fishing Rods - sold at Fishing Store (reduce fishing time)
@@ -162,7 +165,6 @@ DROP_ITEMS = {
     # ========================================================================
     'bone': {'name': 'Bone Fragment', 'type': 'material', 'sell_value': 8, 'description': 'Brittle bone from undead creatures'},
     'cursed_bone': {'name': 'Cursed Bone', 'type': 'material', 'sell_value': 25, 'description': 'Bone infused with dark magic'},
-    'healing_herb': {'name': 'Healing Herb', 'type': 'consumable', 'heal': 20, 'sell_value': 8, 'description': 'A medicinal herb from the wilds'},
     'iron_ore': {'name': 'Iron Ore', 'type': 'material', 'sell_value': 750, 'description': 'Raw iron ore for smithing'},
     'silver_ore': {'name': 'Silver Ore', 'type': 'material', 'sell_value': 2500, 'description': 'Precious silver ore'},
     
@@ -206,13 +208,6 @@ DROP_ITEMS = {
     'phoenix_feather': {'name': 'Phoenix Feather', 'type': 'material', 'sell_value': 200, 'description': 'Feather of eternal rebirth'},
     'star_fragment': {'name': 'Star Fragment', 'type': 'material', 'sell_value': 250, 'description': 'Piece of a fallen star'},
     'void_crystal': {'name': 'Void Crystal', 'type': 'material', 'sell_value': 300, 'description': 'Crystallized void energy'},
-    
-    # ========================================================================
-    # CONSUMABLES - Healing items from enemies
-    # ========================================================================
-    'energy_crystal': {'name': 'Energy Crystal', 'type': 'consumable', 'heal': 40, 'sell_value': 25, 'description': 'Crystal that restores vitality'},
-    'blood_vial': {'name': 'Blood Vial', 'type': 'consumable', 'heal': 50, 'sell_value': 30, 'description': 'Vial of restorative blood'},
-    'soul_elixir': {'name': 'Soul Elixir', 'type': 'consumable', 'heal': 75, 'sell_value': 50, 'description': 'Distilled essence of souls'},
     
     # ========================================================================
     # TEPES LAIR-SPECIFIC LOOT

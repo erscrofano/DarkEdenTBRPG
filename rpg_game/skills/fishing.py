@@ -25,7 +25,7 @@ FISH_TYPES = {
     'silvery_eel': {'name': 'Silvery Eel', 'type': 'material', 'sell_value': 30000, 'description': 'A rare silvery eel', 'catch_chance': 0.03, 'key': 'silvery_eel'},
     'silvery_shad': {'name': 'Silvery Shad', 'type': 'material', 'sell_value': 50000, 'description': 'An extremely rare silvery shad', 'catch_chance': 0.015, 'key': 'silvery_shad'},
     'silvery_carp': {'name': 'Silvery Carp', 'type': 'material', 'sell_value': 100000, 'description': 'The legendary silvery carp - incredibly rare!', 'catch_chance': 0.005, 'key': 'silvery_carp'},
-    'giant_eel': {'name': 'Giant Eel', 'type': 'material', 'sell_value': 200000, 'description': 'A massive legendary eel of unimaginable size!', 'catch_chance': 0.01, 'key': 'giant_eel'},  # Most rare
+    'giant_eel': {'name': 'Giant Eel', 'type': 'material', 'sell_value': 200000, 'description': 'A massive legendary eel of unimaginable size!', 'catch_chance': 0.001, 'key': 'giant_eel'},  # Most rare
 }
 
 # Skill tables - Fishing requirements and XP

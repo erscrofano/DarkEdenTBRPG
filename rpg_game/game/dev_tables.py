@@ -5,8 +5,29 @@ from ..items.definitions import (
     POTIONS, FISHING_RODS, PICKAXES, DROP_ITEMS
 )
 from ..combat.enemies import BASE_ENEMIES
-from ..skills.fishing import FISH_TYPES, FISH_LEVEL_REQUIREMENTS
+from ..skills.fishing import FISH_TYPES, FISH_LEVEL_REQUIREMENTS, COOKED_FISH_ITEMS, GOURMET_FISH_ITEMS
 from ..skills.mining import MINING_ORES, MINING_LEVEL_REQUIREMENTS
+
+
+def get_item_sell_value(item_key):
+    """Get sell value for any item from all possible sources"""
+    # Check all item dictionaries
+    item_sources = [
+        DROP_ITEMS,
+        POTIONS,
+        FISHING_RODS,
+        PICKAXES,
+        FISH_TYPES,
+        COOKED_FISH_ITEMS,
+        GOURMET_FISH_ITEMS,
+        MINING_ORES
+    ]
+    
+    for source in item_sources:
+        if item_key in source:
+            return source[item_key].get('sell_value', '?')
+    
+    return '?'
 
 
 def view_all_items():
@@ -329,7 +350,7 @@ def view_all_monsters():
                 page.append(f"  {colorize('Guaranteed Drop:', Colors.BRIGHT_GREEN + Colors.BOLD)}")
                 for drop in guaranteed_drops:
                     item_name = drop['item'].replace('_', ' ').title()
-                    sell_value = DROP_ITEMS.get(drop['item'], {}).get('sell_value', '?')
+                    sell_value = get_item_sell_value(drop['item'])
                     page.append(f"    💀 {colorize(item_name, Colors.BRIGHT_GREEN)} - {colorize('100%', Colors.BRIGHT_GREEN)} (Worth: {colorize(f'{sell_value}g', Colors.BRIGHT_YELLOW)})")
             
             # Show regular drops (exclude talismans and guaranteed for readability)
@@ -339,8 +360,8 @@ def view_all_monsters():
                 for drop in regular_drops[:5]:  # Show top 5 drops
                     item_name = drop['item'].replace('_', ' ').title()
                     chance = drop['chance'] * 100
-                    # Try to get sell value from DROP_ITEMS
-                    sell_value = DROP_ITEMS.get(drop['item'], {}).get('sell_value', '?')
+                    # Get sell value from any item source
+                    sell_value = get_item_sell_value(drop['item'])
                     page.append(f"    • {colorize(item_name, Colors.WHITE)} - {colorize(f'{chance:.1f}%', Colors.BRIGHT_YELLOW)} (Worth: {colorize(f'{sell_value}g', Colors.YELLOW)})")
             
             page.append(f"  {colorize('Talismans:', Colors.BRIGHT_MAGENTA + Colors.BOLD)} All enemies drop talismans (0.01-1% chance)")

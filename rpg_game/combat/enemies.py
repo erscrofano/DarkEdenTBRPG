@@ -24,18 +24,15 @@ BASE_ENEMIES = [
     {'name': 'Turning Dead', 'base_hp': 30, 'base_attack': 10, 'base_defense': 1, 'base_exp': 20, 'base_gold': 15, 'tier': 1, 'drops': [
         {'item': 'head_turning_dead', 'chance': 1.0},  # Guaranteed
         {'item': 'bone', 'chance': 0.7},
-        {'item': 'healing_herb', 'chance': 0.4},
         {'item': 'soul_fragment', 'chance': 0.3}
     ]},
     {'name': 'Turning Soul', 'base_hp': 40, 'base_attack': 12, 'base_defense': 1, 'base_exp': 25, 'base_gold': 18, 'tier': 1, 'drops': [
         {'item': 'head_turning_soul', 'chance': 1.0},  # Guaranteed
         {'item': 'cursed_bone', 'chance': 0.5},
-        {'item': 'healing_herb', 'chance': 0.35},
         {'item': 'shadow_essence', 'chance': 0.3}
     ]},
     {'name': 'Kid', 'base_hp': 60, 'base_attack': 14, 'base_defense': 2, 'base_exp': 30, 'base_gold': 22, 'tier': 1, 'drops': [
         {'item': 'head_kid', 'chance': 1.0},  # Guaranteed
-        {'item': 'healing_herb', 'chance': 0.5},
         {'item': 'bandit_coin', 'chance': 0.3},
         {'item': 'iron_ore', 'chance': 0.35}
     ]},
@@ -46,8 +43,7 @@ BASE_ENEMIES = [
         {'item': 'head_soldier', 'chance': 1.0},  # Guaranteed
         {'item': 'bandit_mask', 'chance': 0.6},
         {'item': 'soldier_emblem', 'chance': 0.5},
-        {'item': 'iron_ore', 'chance': 0.4},
-        {'item': 'healing_herb', 'chance': 0.3}
+        {'item': 'iron_ore', 'chance': 0.4}
     ]},
     {'name': 'Captain', 'base_hp': 105, 'base_attack': 20, 'base_defense': 4, 'base_exp': 65, 'base_gold': 50, 'tier': 2, 'drops': [
         {'item': 'head_captain', 'chance': 1.0},  # Guaranteed
@@ -149,8 +145,7 @@ BASE_ENEMIES = [
         {'item': 'head_golemer', 'chance': 1.0},  # Guaranteed
         {'item': 'ancient_relic', 'chance': 0.5},
         {'item': 'mithril_ore', 'chance': 0.7},
-        {'item': 'crystal_shard', 'chance': 0.6},
-        {'item': 'energy_crystal', 'chance': 0.4}
+        {'item': 'crystal_shard', 'chance': 0.6}
     ]},
     {'name': 'Shadow Wing', 'base_hp': 175, 'base_attack': 44, 'base_defense': 10, 'base_exp': 215, 'base_gold': 180, 'tier': 4, 'drops': [
         {'item': 'head_shadow_wing', 'chance': 1.0},  # Guaranteed
@@ -236,4 +231,17 @@ BASE_ENEMIES = [
 # Add talisman drops to all enemies
 for enemy in BASE_ENEMIES:
     enemy['drops'].extend(get_all_talisman_drops())
+
+# Add healing ampul drops to all enemies
+AMPUL_DROPS = [
+    {'item': 'mini_healing_ampul', 'chance': 0.10},      # 10%
+    {'item': 'light_healing_ampul', 'chance': 0.09},     # 9%
+    {'item': 'half_healing_ampul', 'chance': 0.08},      # 8%
+    {'item': 'large_healing_ampul', 'chance': 0.03},     # 3%
+    {'item': 'full_healing_ampul', 'chance': 0.02},      # 2%
+    {'item': 'healing_bottle', 'chance': 0.01}           # 1%
+]
+
+for enemy in BASE_ENEMIES:
+    enemy['drops'].extend(AMPUL_DROPS)
 

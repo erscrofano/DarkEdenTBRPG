@@ -365,15 +365,32 @@ def combat(player, enemy):
                 else:
                     use_qty = 1
             
-            # Use the potion(s)
-            total_heal = healing_item['heal'] * use_qty
-            remove_item_from_inventory(player.inventory, healing_item, use_qty)
-            player.heal(total_heal)
+            # Use the potion(s) with anti-overheal logic
+            total_healed = 0
+            items_used = 0
             
-            if use_qty > 1:
-                print(f"\n{colorize('🧪', Colors.BRIGHT_GREEN)} {colorize(f'You used {use_qty}x', Colors.WHITE)} {colorize(healing_item['name'], Colors.BRIGHT_CYAN)} {colorize('and healed', Colors.WHITE)} {colorize(str(total_heal), Colors.BRIGHT_GREEN + Colors.BOLD)} {colorize('HP!', Colors.WHITE)}")
+            for _ in range(use_qty):
+                if player.hp >= player.max_hp:
+                    break  # Already at max HP, stop using items
+                
+                healing_amount = healing_item.get('heal', 0)
+                actual_heal = min(healing_amount, player.max_hp - player.hp)
+                player.heal(actual_heal)
+                total_healed += actual_heal
+                items_used += 1
+                remove_item_from_inventory(player.inventory, healing_item, 1)
+            
+            # Display result
+            if total_healed > 0:
+                if items_used > 1:
+                    print(f"\n{colorize('🧪', Colors.BRIGHT_GREEN)} {colorize(f'You used {items_used}x', Colors.WHITE)} {colorize(healing_item['name'], Colors.BRIGHT_CYAN)} {colorize('and healed', Colors.WHITE)} {colorize(str(total_healed), Colors.BRIGHT_GREEN + Colors.BOLD)} {colorize('HP!', Colors.WHITE)}")
+                else:
+                    print(f"\n{colorize('🧪', Colors.BRIGHT_GREEN)} {colorize('You used', Colors.WHITE)} {colorize(healing_item['name'], Colors.BRIGHT_CYAN)} {colorize('and healed', Colors.WHITE)} {colorize(str(total_healed), Colors.BRIGHT_GREEN + Colors.BOLD)} {colorize('HP!', Colors.WHITE)}")
+                
+                if items_used < use_qty:
+                    print(f"{colorize('ℹ️', Colors.BRIGHT_CYAN)} {colorize('(Capped at max HP - no overheal)', Colors.CYAN)}")
             else:
-                print(f"\n{colorize('🧪', Colors.BRIGHT_GREEN)} {colorize('You used', Colors.WHITE)} {colorize(healing_item['name'], Colors.BRIGHT_CYAN)} {colorize('and healed', Colors.WHITE)} {colorize(str(total_heal), Colors.BRIGHT_GREEN + Colors.BOLD)} {colorize('HP!', Colors.WHITE)}")
+                print(f"\n{colorize('ℹ️', Colors.BRIGHT_CYAN)} {colorize('Already at full HP!', Colors.CYAN)}")
             
             # Continue combat
             clear_screen()
