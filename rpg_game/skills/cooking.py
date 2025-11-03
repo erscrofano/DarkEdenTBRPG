@@ -80,7 +80,14 @@ def cook_fish(player):
                         if player.cooking_level < required_level:
                             success_chance = 0.0
                         else:
-                            success_chance = max(0.10, min(0.95, 0.80 + 0.01 * (player.cooking_level - required_level)))
+                            from ..constants import (
+                                COOKING_SUCCESS_BASE, COOKING_SUCCESS_INCREMENT,
+                                COOKING_SUCCESS_MIN, COOKING_SUCCESS_MAX
+                            )
+                            success_chance = max(
+                                COOKING_SUCCESS_MIN,
+                                min(COOKING_SUCCESS_MAX, COOKING_SUCCESS_BASE + COOKING_SUCCESS_INCREMENT * (player.cooking_level - required_level))
+                            )
                         
                         qty = get_item_quantity(item)
                         xp_per_cook = COOKING_XP_AWARDS.get(lookup_key, 10)
@@ -249,20 +256,23 @@ def cook_fish(player):
                         
                         # Brief success notification
                         if not DEV_FLAGS['quiet']:
+                            from ..constants import NOTIFICATION_DURATION_SHORT
                             cooked_name = COOKED_FISH_ITEMS[cooked_fish_key]['name']
-                            show_notification(f"🔥 Cooked {cooked_name}! +{xp_gain} XP", Colors.BRIGHT_GREEN, 0.3)
+                            show_notification(f"🔥 Cooked {cooked_name}! +{xp_gain} XP", Colors.BRIGHT_GREEN, NOTIFICATION_DURATION_SHORT)
                     else:
                         # Burnt - remove fish, no item created
                         burns += 1
                         if not DEV_FLAGS['quiet']:
-                            show_notification(f"💨 Burnt the fish…", Colors.RED, 0.2)
+                            from ..constants import NOTIFICATION_DURATION_SHORT
+                            show_notification(f"💨 Burnt the fish…", Colors.RED, NOTIFICATION_DURATION_SHORT)
                     
                     # Remove 1 raw fish
                     remove_item_from_inventory(player.inventory, selected_fish['item'], 1)
                     
                     # Brief pause between cooks (unless fast mode or cancelled)
                     if cook_num < cook_qty - 1 and not DEV_FLAGS['fast'] and cooking_active:
-                        time.sleep(0.2)
+                        from ..constants import NOTIFICATION_DURATION_SHORT
+                        time.sleep(NOTIFICATION_DURATION_SHORT)
                 
                 # Track how many were attempted
                 attempted_count = successes + burns
@@ -307,7 +317,8 @@ def cook_fish(player):
                     print(f"{colorize('Total XP Gained:', Colors.BRIGHT_MAGENTA)} {colorize(f'+{total_xp} Cooking XP', Colors.BRIGHT_GREEN)}")
                 
                 if not DEV_FLAGS['quiet'] and (successes + burns) > 1:
-                    show_notification(f"Cooking Summary: {successes + burns} attempted — {successes} cooked, {burns} burnt | +{total_xp} XP", Colors.BRIGHT_MAGENTA, 1.5)
+                    from ..constants import NOTIFICATION_DURATION_NORMAL
+                    show_notification(f"Cooking Summary: {successes + burns} attempted — {successes} cooked, {burns} burnt | +{total_xp} XP", Colors.BRIGHT_MAGENTA, NOTIFICATION_DURATION_NORMAL)
                 
                 input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
             else:

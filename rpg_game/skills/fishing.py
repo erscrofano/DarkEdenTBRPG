@@ -74,8 +74,13 @@ def get_fishing_catch(player, eligible_fish):
     if not eligible_fish:
         return None, None
     
+    from ..constants import (
+        FISHING_LEVEL_BOOST_MULTIPLIER, FISHING_LEVEL_BOOST_MAX,
+        FISHING_RARITY_WEIGHT_DIVISOR, FISHING_LOW_TIER_THRESHOLD
+    )
+    
     # Calculate level boost (up to 25% absolute)
-    level_boost = min(0.25, player.fishing_level * 0.002)
+    level_boost = min(FISHING_LEVEL_BOOST_MAX, player.fishing_level * FISHING_LEVEL_BOOST_MULTIPLIER)
     
     # Build weights with level scaling
     weights = {}
@@ -86,7 +91,7 @@ def get_fishing_catch(player, eligible_fish):
         required_level = FISH_LEVEL_REQUIREMENTS.get(fish_key, 1)
         
         # Rarity weight proportional to required_level / 80
-        rarity_weight = required_level / 80.0
+        rarity_weight = required_level / FISHING_RARITY_WEIGHT_DIVISOR
         
         # Apply level boost to higher tier fish
         if fish_key not in low_tier_fish:
@@ -100,9 +105,9 @@ def get_fishing_catch(player, eligible_fish):
     low_tier_total = sum(weights.get(k, 0) for k in low_tier_fish if k in weights)
     total_weight = sum(weights.values())
     
-    if low_tier_total / total_weight < 0.55:
+    if low_tier_total / total_weight < FISHING_LOW_TIER_THRESHOLD:
         # Boost low tier to maintain 55% minimum
-        scale_factor = (0.55 * total_weight) / low_tier_total
+        scale_factor = (FISHING_LOW_TIER_THRESHOLD * total_weight) / low_tier_total
         for fish_key in low_tier_fish:
             if fish_key in weights:
                 weights[fish_key] *= scale_factor
@@ -237,7 +242,8 @@ def go_fishing(player):
                 break
             
             # Check for line break (5% chance)
-            if random.random() < 0.05:
+            from ..constants import FISHING_RARE_CATCH_CHANCE
+            if random.random() < FISHING_RARE_CATCH_CHANCE:
                 continue  # Skip this catch
             
             # Determine catch using level-based weighting
@@ -264,7 +270,8 @@ def go_fishing(player):
                     rarity_key = get_item_rarity(caught_fish_data)
                     rarity_info = ITEM_RARITY[rarity_key]
                     formatted_name = format_item_name(caught_fish_data)
-                    show_notification(f"🎣 Caught {formatted_name}! +{xp_amount} XP", Colors.BRIGHT_GREEN, 0.5)
+                    from ..constants import NOTIFICATION_DURATION_MEDIUM
+                    show_notification(f"🎣 Caught {formatted_name}! +{xp_amount} XP", Colors.BRIGHT_GREEN, NOTIFICATION_DURATION_MEDIUM)
     
     def input_handler():
         """Handle user input to stop fishing"""

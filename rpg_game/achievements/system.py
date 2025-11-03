@@ -275,10 +275,12 @@ def check_achievements(player, achievement_type, value=None):
     # Show notifications and award gold
     for ach_name, gold_reward in new_achievements:
         player.gold += gold_reward
-        show_notification(f"Achievement Unlocked: {ach_name} (+{gold_reward} gold)!", Colors.BRIGHT_GREEN, 2.0, critical=True)
+        from ..constants import NOTIFICATION_DURATION_LONG
+        show_notification(f"Achievement Unlocked: {ach_name} (+{gold_reward} gold)!", Colors.BRIGHT_GREEN, NOTIFICATION_DURATION_LONG, critical=True)
     
     if total_gold_reward > 0:
         # Also show total if multiple achievements unlocked
         if len(new_achievements) > 1:
-            show_notification(f"Total Gold Reward: {total_gold_reward} gold!", Colors.BRIGHT_YELLOW, 1.5, critical=True)
+            from ..constants import NOTIFICATION_DURATION_NORMAL
+            show_notification(f"Total Gold Reward: {total_gold_reward} gold!", Colors.BRIGHT_YELLOW, NOTIFICATION_DURATION_NORMAL, critical=True)
 

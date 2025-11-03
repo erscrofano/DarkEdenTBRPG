@@ -1,5 +1,12 @@
 """Exploration and location systems"""
 import random
+from ..constants import (
+    ENCOUNTER_CHANCE, RANDOM_EVENT_CHANCE,
+    LOCATION_MULTIPLIER_UNDERGROUND, LOCATION_MULTIPLIER_DEFAULT,
+    RANDOM_EVENT_GOLD_MIN, RANDOM_EVENT_GOLD_MAX,
+    RANDOM_EVENT_EXP_MIN, RANDOM_EVENT_EXP_MAX,
+    REVIVE_HP
+)
 from ..ui import Colors, colorize, clear_screen, health_bar
 from ..models.location import LOCATIONS
 from ..models.enemy import Enemy
@@ -14,16 +21,16 @@ def explore_location(player, location_name):
     
     # Determine enemy pool and scaling multiplier based on location
     enemy_pool = []
-    location_multiplier = 1.0
+    location_multiplier = LOCATION_MULTIPLIER_DEFAULT
     
     if location_name == 'underground_waterways':
         # Tiers 2-4 enemies, medium-hard difficulty
         enemy_pool = [e for e in BASE_ENEMIES if 2 <= e['tier'] <= 4]
-        location_multiplier = 1.1
+        location_multiplier = LOCATION_MULTIPLIER_UNDERGROUND
     else:
         # Unknown location - shouldn't happen, but provide fallback
         enemy_pool = BASE_ENEMIES
-        location_multiplier = 1.0
+        location_multiplier = LOCATION_MULTIPLIER_DEFAULT
     
     while True:
         clear_screen()
@@ -41,7 +48,7 @@ def explore_location(player, location_name):
         
         if choice == '1':
             encounter_chance = random.random()
-            if encounter_chance < 0.7:  # 70% chance of combat
+            if encounter_chance < ENCOUNTER_CHANCE:  # 70% chance of combat
                 enemy_template = random.choice(enemy_pool).copy()
                 # Scale enemy based on player level
                 enemy_data = scale_enemy(enemy_template, player.level, location_multiplier)
@@ -66,7 +73,7 @@ def explore_location(player, location_name):
                 continue
             else:
                 # Random events (OSRS-style) - 5% chance
-                if random.random() < 0.05:
+                if random.random() < RANDOM_EVENT_CHANCE:
                     random_event = random.choice([
                         ('treasure', 'You found a hidden treasure chest!'),
                         ('mysterious', 'A mysterious figure appears and rewards you!'),
@@ -81,11 +88,11 @@ def explore_location(player, location_name):
                     print(f"\n{colorize(event_msg, Colors.BRIGHT_YELLOW)}")
                     
                     if event_type == 'treasure':
-                        bonus_gold = random.randint(50, 200)
+                        bonus_gold = random.randint(RANDOM_EVENT_GOLD_MIN, RANDOM_EVENT_GOLD_MAX)
                         player.gold += bonus_gold
                         print(f"\n{colorize('💰', Colors.BRIGHT_YELLOW)} {colorize(f'Gained {bonus_gold} gold!', Colors.BRIGHT_YELLOW)}")
                     elif event_type == 'mysterious':
-                        bonus_exp = random.randint(20, 100)
+                        bonus_exp = random.randint(RANDOM_EVENT_EXP_MIN, RANDOM_EVENT_EXP_MAX)
                         player.exp += bonus_exp
                         print(f"\n{colorize('✨', Colors.BRIGHT_GREEN)} {colorize(f'Gained {bonus_exp} experience!', Colors.BRIGHT_GREEN)}")
                     elif event_type == 'lucky':
@@ -226,7 +233,7 @@ def explore_tepes_lair(player):
                 player.inventory = [item.copy() for item in original_inventory]
                 player.gold = original_gold
                 player.exp = original_exp
-                player.hp = 1  # Revive with 1 HP
+                player.hp = REVIVE_HP  # Revive with 1 HP
                 
                 input(f"\n{colorize('Press Enter to return...', Colors.WHITE)}")
                 return 'previous'
@@ -466,7 +473,7 @@ def explore_multi_floor_dungeon(player, dungeon_name, floors, start_floor='b1'):
                 player.inventory = [item.copy() for item in original_inventory]
                 player.gold = original_gold
                 player.exp = original_exp
-                player.hp = 1  # Revive with 1 HP
+                player.hp = REVIVE_HP  # Revive with 1 HP
                 
                 input(f"\n{colorize('Press Enter to return to previous area...', Colors.WHITE)}")
                 return 'previous'  # Signal to return to previous area

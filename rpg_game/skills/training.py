@@ -15,7 +15,8 @@ def add_exp(player, amount, silent=False):
         levels_gained += 1
         if silent:
             # Silent mode: just show a brief notification
-            show_notification(f"Level {player.level}! +5 stat points banked", Colors.BRIGHT_GREEN, 1.5, critical=True)
+            from ..constants import NOTIFICATION_DURATION_NORMAL, STAT_POINTS_PER_LEVEL
+            show_notification(f"Level {player.level}! +{STAT_POINTS_PER_LEVEL} stat points banked", Colors.BRIGHT_GREEN, NOTIFICATION_DURATION_NORMAL, critical=True)
     
     return levels_gained
 

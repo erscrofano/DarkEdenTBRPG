@@ -65,8 +65,9 @@ def get_mining_catch(player, eligible_ores):
     gems = ['sapphire', 'ruby', 'emerald', 'diamond']
     low_tier_ores = ['copper', 'tin']  # Low tier ores that should remain common
     
+    from ..constants import MINING_LEVEL_BOOST_MULTIPLIER, MINING_LEVEL_BOOST_MAX
     # Calculate level boost for higher tier ores (up to 25% absolute)
-    level_boost = min(0.25, player.mining_level * 0.002)
+    level_boost = min(MINING_LEVEL_BOOST_MAX, player.mining_level * MINING_LEVEL_BOOST_MULTIPLIER)
     
     # Build weights with level scaling
     weights = {}
@@ -241,7 +242,8 @@ def go_mining(player):
                     rarity_key = get_item_rarity(mined_ore_data)
                     rarity_info = ITEM_RARITY[rarity_key]
                     formatted_name = format_item_name(mined_ore_data)
-                    show_notification(f"⛏️ Mined {formatted_name}! +{xp_amount} XP", Colors.BRIGHT_GREEN, 0.5)
+                    from ..constants import NOTIFICATION_DURATION_MEDIUM
+                    show_notification(f"⛏️ Mined {formatted_name}! +{xp_amount} XP", Colors.BRIGHT_GREEN, NOTIFICATION_DURATION_MEDIUM)
     
     def input_handler():
         """Handle user input to stop mining"""

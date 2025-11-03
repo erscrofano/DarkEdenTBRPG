@@ -1,6 +1,20 @@
 """Combat system implementation"""
 import random
 from ..config import DEV_FLAGS
+from ..constants import (
+    DODGE_CAP, DODGE_CALCULATION_DIVISOR, BOSS_ACCURACY_FLOOR, RUN_CHANCE,
+    ENEMY_ATTACK_MIN_VARIANCE, ENEMY_ATTACK_MAX_VARIANCE,
+    MIN_DAMAGE_RATIO, MIN_DAMAGE_ALWAYS,
+    CRIT_CHANCE_MAX, CRIT_DEX_DIVISOR,
+    CRIT_MULTIPLIER_MIN, CRIT_MULTIPLIER_MAX,
+    DEX_PRECISION_INTERVAL, DEX_PRECISION_BONUS,
+    DEX_DAMAGE_DIVISOR, DEX_UPPER_RANGE_RATIO,
+    DEATH_GOLD_LOSS, DEATH_ITEM_PROTECTION,
+    GUARANTEED_FLEE_GOLD_COST,
+    KILL_STREAK_NOTIFICATION_INTERVAL,
+    NOTIFICATION_DURATION_NORMAL, NOTIFICATION_DURATION_LONG,
+    ENEMY_SCALE_BASE, ENEMY_SCALE_MULTIPLIER, ENEMY_SCALE_DECAY
+)
 from ..ui import Colors, colorize, clear_screen, show_notification, health_bar
 from ..items import DROP_ITEMS, add_item_to_inventory, remove_item_from_inventory, get_item_quantity, format_item_name, get_item_rarity, ITEM_RARITY
 from ..achievements.system import check_achievements, log_rare_drop
@@ -10,12 +24,12 @@ from ..game.stats import allocate_stats
 def scale_enemy(enemy_template, player_level, location_multiplier=1.0):
     """Scale enemy stats based on player level and location (eased growth curve)"""
     # Smooth difficulty curve: use asymptotic scaling instead of linear
-    # Formula: scaler = 1.0 + (1 - (0.85 ** level_diff)) * 1.2
+    # Formula: scaler = ENEMY_SCALE_BASE + (1 - (ENEMY_SCALE_DECAY ** level_diff)) * ENEMY_SCALE_MULTIPLIER
     # This provides strong early scaling that tapers off for smoother progression
     level_diff = max(0, player_level - enemy_template['tier'])
     
     # Asymptotic scaler that caps growth smoothly
-    base_scaler = 1.0 + (1 - (0.85 ** level_diff)) * 1.2
+    base_scaler = ENEMY_SCALE_BASE + (1 - (ENEMY_SCALE_DECAY ** level_diff)) * ENEMY_SCALE_MULTIPLIER
     scale_factor = base_scaler * location_multiplier
     
     # Apply scaling
@@ -76,30 +90,30 @@ def combat(player, enemy):
         if choice == '1':
             # Calculate damage based on STR and DEX
             max_damage = player.get_max_attack_power()
-            min_damage = max(1, max_damage // 2)  # Minimum damage is half of max
+            min_damage = max(MIN_DAMAGE_ALWAYS, int(max_damage * MIN_DAMAGE_RATIO))  # Minimum damage is half of max
             
             # Critical hit chance based on DEX (Kal Online style)
-            crit_chance = min(0.25, player.dex / 200.0)  # Max 25% crit at 50 DEX
+            crit_chance = min(CRIT_CHANCE_MAX, player.dex / CRIT_DEX_DIVISOR)  # Max 25% crit at 50 DEX
             is_crit = random.random() < crit_chance
             
             # DEX affects damage distribution: higher DEX = more likely to hit near max
-            dex_bonus = player.dex / 100.0  # DEX/100 gives % chance for max damage range
+            dex_bonus = player.dex / DEX_DAMAGE_DIVISOR  # DEX/100 gives % chance for max damage range
             roll = random.random()
             
             # DEX precision floor: every 20 DEX grants +5% minimum damage floor (before defense)
             # This ensures DEX feels impactful even without crits
-            precision_bonus = (player.dex // 20) * 0.05  # +5% per 20 DEX, max 25% at 100 DEX
+            precision_bonus = (player.dex // DEX_PRECISION_INTERVAL) * DEX_PRECISION_BONUS  # +5% per 20 DEX, max 25% at 100 DEX
             min_damage_with_precision = int(min_damage * (1 + precision_bonus))
             
             if is_crit:
                 # Critical hit: 1.5x-2x damage
-                crit_multiplier = random.uniform(1.5, 2.0)
+                crit_multiplier = random.uniform(CRIT_MULTIPLIER_MIN, CRIT_MULTIPLIER_MAX)
                 player_damage = int(max_damage * crit_multiplier)
                 crit_msg = " CRITICAL HIT!"
                 print(f"\n{colorize('⚔️', Colors.BRIGHT_YELLOW)} {colorize('You attack', Colors.CYAN)} {colorize(enemy.name, Colors.BRIGHT_RED)} {colorize('for', Colors.WHITE)} {colorize(str(player_damage), Colors.BRIGHT_YELLOW + Colors.BOLD)} {colorize('damage!', Colors.CYAN)}{colorize(crit_msg, Colors.BRIGHT_YELLOW + Colors.BOLD)}")
             elif roll < dex_bonus:
                 # High DEX: hit in upper 60% of damage range
-                upper_range = int((max_damage - min_damage_with_precision) * 0.6)
+                upper_range = int((max_damage - min_damage_with_precision) * DEX_UPPER_RANGE_RATIO)
                 player_damage = random.randint(max(max_damage - upper_range, min_damage_with_precision), max_damage)
                 print(f"\n{colorize('⚔️', Colors.BRIGHT_RED)} {colorize('You attack', Colors.CYAN)} {colorize(enemy.name, Colors.BRIGHT_RED)} {colorize('for', Colors.WHITE)} {colorize(str(player_damage), Colors.BRIGHT_RED + Colors.BOLD)} {colorize('damage!', Colors.CYAN)}")
             else:
@@ -182,20 +196,20 @@ def combat(player, enemy):
                             formatted_name = format_item_name(drop_item)
                             print(f"  {colorize('•', Colors.BRIGHT_CYAN)} {formatted_name}")
                         
-                        # Special notification for rare drops
+                            # Special notification for rare drops
                         for drop_item in drops_received:
                             rarity = get_item_rarity(drop_item)
                             if rarity in ['epic', 'legendary']:
                                 rarity_name = ITEM_RARITY[rarity]['name']
-                                show_notification(f"{rarity_name} drop: {drop_item['name']}!", ITEM_RARITY[rarity]['color'], 2.0)
+                                show_notification(f"{rarity_name} drop: {drop_item['name']}!", ITEM_RARITY[rarity]['color'], NOTIFICATION_DURATION_LONG)
                 
                 # Update kill tracking (Kal Online inspired)
                 player.kill_streak += 1
                 player.total_kills += 1
                 
                 # Kill streak notifications
-                if player.kill_streak % 5 == 0 and player.kill_streak > 0:
-                    show_notification(f"Kill Streak: {player.kill_streak}!", Colors.BRIGHT_RED, 1.5)
+                if player.kill_streak % KILL_STREAK_NOTIFICATION_INTERVAL == 0 and player.kill_streak > 0:
+                    show_notification(f"Kill Streak: {player.kill_streak}!", Colors.BRIGHT_RED, NOTIFICATION_DURATION_NORMAL)
                 
                 # Check achievements
                 check_achievements(player, 'kills')
@@ -227,14 +241,17 @@ def combat(player, enemy):
                 return True
             
             # Enemy attacks - check for dodge
-            enemy_damage = random.randint(max(1, enemy.attack - 3), enemy.attack + 5)
+            enemy_damage = random.randint(
+                max(MIN_DAMAGE_ALWAYS, enemy.attack + ENEMY_ATTACK_MIN_VARIANCE),
+                enemy.attack + ENEMY_ATTACK_MAX_VARIANCE
+            )
             # AGL affects dodge chance: higher AGL = better chance to dodge
             # Reduced cap to 35% (from 50%) to prevent trivialization
-            base_dodge = min(0.35, player.agl / 100.0)  # Max 35% dodge at 35 AGL
+            base_dodge = min(DODGE_CAP, player.agl / DODGE_CALCULATION_DIVISOR)  # Max 35% dodge at 35 AGL
             
             # Boss accuracy floor: bosses/elites have at least 10% hit chance
             is_boss = hasattr(enemy, 'is_boss') and enemy.is_boss
-            accuracy_floor = 0.10 if is_boss else 0.0
+            accuracy_floor = BOSS_ACCURACY_FLOOR if is_boss else 0.0
             dodge_chance = min(base_dodge, 1.0 - accuracy_floor)
             
             if random.random() < dodge_chance:
@@ -263,11 +280,11 @@ def combat(player, enemy):
                     total_value = item.get('sell_value', 0) * qty
                     item_values.append((item, total_value, qty))
                 
-                if len(item_values) > 3:
+                if len(item_values) > DEATH_ITEM_PROTECTION:
                     # Sort by total value
                     item_values.sort(key=lambda x: x[1], reverse=True)
-                    kept_items = item_values[:3]
-                    lost_items = item_values[3:]
+                    kept_items = item_values[:DEATH_ITEM_PROTECTION]
+                    lost_items = item_values[DEATH_ITEM_PROTECTION:]
                     
                     # Remove lost items
                     total_lost = 0
@@ -277,10 +294,10 @@ def combat(player, enemy):
                     
                     if total_lost > 0:
                         print(f"\n{colorize('💔', Colors.YELLOW)} {colorize(f'You lost {total_lost} items on death!', Colors.WHITE)}")
-                        print(f"{colorize('🛡️', Colors.BRIGHT_GREEN)} {colorize('Kept your 3 most valuable items.', Colors.BRIGHT_GREEN)}")
+                        print(f"{colorize('🛡️', Colors.BRIGHT_GREEN)} {colorize(f'Kept your {DEATH_ITEM_PROTECTION} most valuable items.', Colors.BRIGHT_GREEN)}")
                 
                 # Lose 10% of gold on death (Kal Online style)
-                gold_lost = int(player.gold * 0.1)
+                gold_lost = int(player.gold * DEATH_GOLD_LOSS)
                 player.gold -= gold_lost
                 if gold_lost > 0:
                     print(f"{colorize('💰', Colors.YELLOW)} {colorize(f'Lost {gold_lost} gold on death.', Colors.WHITE)}")
@@ -365,13 +382,16 @@ def combat(player, enemy):
             print(colorize("=" * 60, Colors.CYAN))
             
             # Enemy attacks - check for dodge
-            enemy_damage = random.randint(max(1, enemy.attack - 3), enemy.attack + 5)
+            enemy_damage = random.randint(
+                max(MIN_DAMAGE_ALWAYS, enemy.attack + ENEMY_ATTACK_MIN_VARIANCE),
+                enemy.attack + ENEMY_ATTACK_MAX_VARIANCE
+            )
             # Reduced cap to 35% (from 50%) to prevent trivialization
-            base_dodge = min(0.35, player.agl / 100.0)  # Max 35% dodge at 35 AGL
+            base_dodge = min(DODGE_CAP, player.agl / DODGE_CALCULATION_DIVISOR)  # Max 35% dodge at 35 AGL
             
             # Boss accuracy floor: bosses/elites have at least 10% hit chance
             is_boss = hasattr(enemy, 'is_boss') and enemy.is_boss
-            accuracy_floor = 0.10 if is_boss else 0.0
+            accuracy_floor = BOSS_ACCURACY_FLOOR if is_boss else 0.0
             dodge_chance = min(base_dodge, 1.0 - accuracy_floor)
             
             if random.random() < dodge_chance:
@@ -400,11 +420,11 @@ def combat(player, enemy):
                     total_value = item.get('sell_value', 0) * qty
                     item_values.append((item, total_value, qty))
                 
-                if len(item_values) > 3:
+                if len(item_values) > DEATH_ITEM_PROTECTION:
                     # Sort by total value
                     item_values.sort(key=lambda x: x[1], reverse=True)
-                    kept_items = item_values[:3]
-                    lost_items = item_values[3:]
+                    kept_items = item_values[:DEATH_ITEM_PROTECTION]
+                    lost_items = item_values[DEATH_ITEM_PROTECTION:]
                     
                     # Remove lost items
                     total_lost = 0
@@ -414,10 +434,10 @@ def combat(player, enemy):
                     
                     if total_lost > 0:
                         print(f"\n{colorize('💔', Colors.YELLOW)} {colorize(f'You lost {total_lost} items on death!', Colors.WHITE)}")
-                        print(f"{colorize('🛡️', Colors.BRIGHT_GREEN)} {colorize('Kept your 3 most valuable items.', Colors.BRIGHT_GREEN)}")
+                        print(f"{colorize('🛡️', Colors.BRIGHT_GREEN)} {colorize(f'Kept your {DEATH_ITEM_PROTECTION} most valuable items.', Colors.BRIGHT_GREEN)}")
                 
                 # Lose 10% of gold on death (Kal Online style)
-                gold_lost = int(player.gold * 0.1)
+                gold_lost = int(player.gold * DEATH_GOLD_LOSS)
                 player.gold -= gold_lost
                 if gold_lost > 0:
                     print(f"{colorize('💰', Colors.YELLOW)} {colorize(f'Lost {gold_lost} gold on death.', Colors.WHITE)}")
@@ -428,7 +448,7 @@ def combat(player, enemy):
             # Guaranteed Flee safety valve
             player._guaranteed_flee_used = True
             streak_lost = player.kill_streak
-            gold_cost = max(1, int(player.gold * 0.05))
+            gold_cost = max(MIN_DAMAGE_ALWAYS, int(player.gold * GUARANTEED_FLEE_GOLD_COST))
             
             player.kill_streak = 0
             player.gold -= gold_cost
@@ -444,20 +464,23 @@ def combat(player, enemy):
         
         elif choice == '3':
             run_chance = random.random()
-            if run_chance > 0.3:
+            if run_chance > RUN_CHANCE:
                 print(f"\n{colorize('🏃', Colors.BRIGHT_BLUE)} {colorize('You successfully ran away!', Colors.BRIGHT_GREEN)}")
                 input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
                 return True
             else:
                 escape_msg = "You couldn't escape!"
                 print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(escape_msg, Colors.YELLOW)}")
-                enemy_damage = random.randint(max(1, enemy.attack - 3), enemy.attack + 5)
+                enemy_damage = random.randint(
+                    max(MIN_DAMAGE_ALWAYS, enemy.attack + ENEMY_ATTACK_MIN_VARIANCE),
+                    enemy.attack + ENEMY_ATTACK_MAX_VARIANCE
+                )
                 # Reduced cap to 35% (from 50%) to prevent trivialization
-                base_dodge = min(0.35, player.agl / 100.0)  # Max 35% dodge at 35 AGL
+                base_dodge = min(DODGE_CAP, player.agl / DODGE_CALCULATION_DIVISOR)  # Max 35% dodge at 35 AGL
                 
                 # Boss accuracy floor: bosses/elites have at least 10% hit chance
                 is_boss = hasattr(enemy, 'is_boss') and enemy.is_boss
-                accuracy_floor = 0.10 if is_boss else 0.0
+                accuracy_floor = BOSS_ACCURACY_FLOOR if is_boss else 0.0
                 dodge_chance = min(base_dodge, 1.0 - accuracy_floor)
                 
                 if random.random() < dodge_chance:

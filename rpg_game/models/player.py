@@ -1,5 +1,13 @@
 """Player model class"""
 from ..config import SAVE_SCHEMA_VERSION
+from ..constants import (
+    STARTING_LEVEL, STARTING_EXP, STARTING_EXP_TO_NEXT,
+    STARTING_BASE_HP, STARTING_STR, STARTING_DEX, STARTING_AGL,
+    STARTING_ATTACK, STARTING_DEFENSE, STARTING_GOLD, STARTING_STAT_POINTS,
+    HP_PER_STAT_POINT, STARTING_SKILL_LEVEL, STARTING_SKILL_EXP,
+    STARTING_SKILL_EXP_TO_NEXT, STAT_POINTS_PER_LEVEL, EXP_MULTIPLIER_PER_LEVEL,
+    BASE_DAMAGE, STR_DAMAGE_MULTIPLIER, MAX_SKILL_LEVEL, DEFAULT_SAVE_SLOT
+)
 from ..ui import Colors, colorize, health_bar, skill_xp_bar
 from ..save.system import save_game
 
@@ -7,21 +15,21 @@ from ..save.system import save_game
 class Player:
     def __init__(self, name):
         self.name = name
-        self.level = 1
-        self.exp = 0
-        self.exp_to_next = 100
+        self.level = STARTING_LEVEL
+        self.exp = STARTING_EXP
+        self.exp_to_next = STARTING_EXP_TO_NEXT
         # Base stats
-        self.base_hp = 10  # HP stat
-        self.str = 10  # Strength - increases max damage
-        self.dex = 10  # Dexterity - increases chance for high damage rolls
-        self.agl = 10  # Agility - increases dodge chance
-        self.stat_points = 0  # Unallocated stat points
+        self.base_hp = STARTING_BASE_HP  # HP stat
+        self.str = STARTING_STR  # Strength - increases max damage
+        self.dex = STARTING_DEX  # Dexterity - increases chance for high damage rolls
+        self.agl = STARTING_AGL  # Agility - increases dodge chance
+        self.stat_points = STARTING_STAT_POINTS  # Unallocated stat points
         # Derived stats
-        self.max_hp = self.base_hp * 10  # Each HP point = 10 max HP
+        self.max_hp = self.base_hp * HP_PER_STAT_POINT  # Each HP point = 10 max HP
         self.hp = self.max_hp
-        self.attack = 10
-        self.defense = 5
-        self.gold = 50
+        self.attack = STARTING_ATTACK
+        self.defense = STARTING_DEFENSE
+        self.gold = STARTING_GOLD
         self.inventory = []
         # Give starter weapon (G0 Training Sword)
         from ..items.definitions import SWORDS
@@ -34,17 +42,20 @@ class Player:
         self.highest_tower_floor = 0  # Track highest tower floor reached
         self.achievements = []
         # Skills
-        self.fishing_level = 1
-        self.fishing_exp = 0
-        self.fishing_exp_to_next = 100
-        self.cooking_level = 1
-        self.cooking_exp = 0
-        self.cooking_exp_to_next = 100
-        self.mining_level = 1
-        self.mining_exp = 0
-        self.mining_exp_to_next = 100
+        self.fishing_level = STARTING_SKILL_LEVEL
+        self.fishing_exp = STARTING_SKILL_EXP
+        self.fishing_exp_to_next = STARTING_SKILL_EXP_TO_NEXT
+        self.cooking_level = STARTING_SKILL_LEVEL
+        self.cooking_exp = STARTING_SKILL_EXP
+        self.cooking_exp_to_next = STARTING_SKILL_EXP_TO_NEXT
+        self.mining_level = STARTING_SKILL_LEVEL
+        self.mining_exp = STARTING_SKILL_EXP
+        self.mining_exp_to_next = STARTING_SKILL_EXP_TO_NEXT
         # Location tracking
         self.current_location = 'eslania_city'
+        # Save slot tracking
+        from ..constants import DEFAULT_SAVE_SLOT
+        self.save_slot = DEFAULT_SAVE_SLOT
         
     def to_dict(self):
         """Convert player to dictionary for saving"""
@@ -81,7 +92,8 @@ class Player:
             'mining_level': getattr(self, 'mining_level', 1),
             'mining_exp': getattr(self, 'mining_exp', 0),
             'mining_exp_to_next': getattr(self, 'mining_exp_to_next', 100),
-            'current_location': getattr(self, 'current_location', 'eslania_city')
+            'current_location': getattr(self, 'current_location', 'eslania_city'),
+            'save_slot': getattr(self, 'save_slot', DEFAULT_SAVE_SLOT)
         }
     
     @classmethod
@@ -98,16 +110,16 @@ class Player:
         player.exp = data['exp']
         player.exp_to_next = data['exp_to_next']
         # Load stats (with defaults for old save files)
-        player.base_hp = data.get('base_hp', 10)
-        player.str = data.get('str', 10)
-        player.dex = data.get('dex', 10)
-        player.agl = data.get('agl', 10)
-        player.stat_points = data.get('stat_points', 0)
+        player.base_hp = data.get('base_hp', STARTING_BASE_HP)
+        player.str = data.get('str', STARTING_STR)
+        player.dex = data.get('dex', STARTING_DEX)
+        player.agl = data.get('agl', STARTING_AGL)
+        player.stat_points = data.get('stat_points', STARTING_STAT_POINTS)
         # Update derived stats
-        player.max_hp = player.base_hp * 10
+        player.max_hp = player.base_hp * HP_PER_STAT_POINT
         player.hp = min(data.get('hp', player.max_hp), player.max_hp)
-        player.attack = data.get('attack', 10)
-        player.defense = data.get('defense', 5)
+        player.attack = data.get('attack', STARTING_ATTACK)
+        player.defense = data.get('defense', STARTING_DEFENSE)
         player.gold = data['gold']
         player.inventory = data['inventory']
         # Ensure all items have quantity field for backwards compatibility
@@ -132,15 +144,15 @@ class Player:
         schema_version = data.get('schema', 1)
         if schema_version < SAVE_SCHEMA_VERSION:
             # Migration: set defaults for new skill fields
-            player.fishing_level = 1
-            player.fishing_exp = 0
-            player.fishing_exp_to_next = 100
-            player.cooking_level = 1
-            player.cooking_exp = 0
-            player.cooking_exp_to_next = 100
-            player.mining_level = 1
-            player.mining_exp = 0
-            player.mining_exp_to_next = 100
+            player.fishing_level = STARTING_SKILL_LEVEL
+            player.fishing_exp = STARTING_SKILL_EXP
+            player.fishing_exp_to_next = STARTING_SKILL_EXP_TO_NEXT
+            player.cooking_level = STARTING_SKILL_LEVEL
+            player.cooking_exp = STARTING_SKILL_EXP
+            player.cooking_exp_to_next = STARTING_SKILL_EXP_TO_NEXT
+            player.mining_level = STARTING_SKILL_LEVEL
+            player.mining_exp = STARTING_SKILL_EXP
+            player.mining_exp_to_next = STARTING_SKILL_EXP_TO_NEXT
             # Auto-resave with new schema
             try:
                 save_game(player)
@@ -149,15 +161,15 @@ class Player:
                 from ..utils.logging import log_warning
                 log_warning(f"Failed to auto-resave player after migration: {e}")
         else:
-            player.fishing_level = data.get('fishing_level', 1)
-            player.fishing_exp = data.get('fishing_exp', 0)
-            player.fishing_exp_to_next = data.get('fishing_exp_to_next', 100)
-            player.cooking_level = data.get('cooking_level', 1)
-            player.cooking_exp = data.get('cooking_exp', 0)
-            player.cooking_exp_to_next = data.get('cooking_exp_to_next', 100)
-            player.mining_level = data.get('mining_level', 1)
-            player.mining_exp = data.get('mining_exp', 0)
-            player.mining_exp_to_next = data.get('mining_exp_to_next', 100)
+            player.fishing_level = data.get('fishing_level', STARTING_SKILL_LEVEL)
+            player.fishing_exp = data.get('fishing_exp', STARTING_SKILL_EXP)
+            player.fishing_exp_to_next = data.get('fishing_exp_to_next', STARTING_SKILL_EXP_TO_NEXT)
+            player.cooking_level = data.get('cooking_level', STARTING_SKILL_LEVEL)
+            player.cooking_exp = data.get('cooking_exp', STARTING_SKILL_EXP)
+            player.cooking_exp_to_next = data.get('cooking_exp_to_next', STARTING_SKILL_EXP_TO_NEXT)
+            player.mining_level = data.get('mining_level', STARTING_SKILL_LEVEL)
+            player.mining_exp = data.get('mining_exp', STARTING_SKILL_EXP)
+            player.mining_exp_to_next = data.get('mining_exp_to_next', STARTING_SKILL_EXP_TO_NEXT)
         
         # Load location (default to eslania_city for backwards compatibility)
         player.current_location = data.get('current_location', 'eslania_city')
@@ -165,16 +177,20 @@ class Player:
         if player.current_location == 'town':
             player.current_location = 'eslania_city'
         
+        # Load save slot (default to 'main' for backwards compatibility)
+        from ..constants import DEFAULT_SAVE_SLOT
+        player.save_slot = data.get('save_slot', DEFAULT_SAVE_SLOT)
+        
         return player
         
     def calculate_max_hp(self):
         """Recalculate max HP based on base_hp stat and talisman bonuses"""
         old_max = self.max_hp if hasattr(self, 'max_hp') else 0
-        self.max_hp = self.base_hp * 10
+        self.max_hp = self.base_hp * HP_PER_STAT_POINT
         # Add HP bonus from armor talisman if present
         if self.armor and 'talisman_bonuses' in self.armor:
             bonuses = self.armor['talisman_bonuses']
-            self.max_hp += bonuses.get('bonus_hp', 0) * 10  # Each HP point = 10 max HP
+            self.max_hp += bonuses.get('bonus_hp', 0) * HP_PER_STAT_POINT  # Each HP point = 10 max HP
         # If max HP increased, increase current HP proportionally
         if old_max > 0 and self.max_hp > old_max:
             hp_percentage = self.hp / old_max
@@ -218,15 +234,15 @@ class Player:
         if self.exp >= self.exp_to_next:
             self.level += 1
             self.exp -= self.exp_to_next
-            self.exp_to_next = int(self.exp_to_next * 1.5)
-            self.stat_points += 5  # Give 5 stat points per level
+            self.exp_to_next = int(self.exp_to_next * EXP_MULTIPLIER_PER_LEVEL)
+            self.stat_points += STAT_POINTS_PER_LEVEL  # Give 5 stat points per level
             # Auto-heal on level up
             self.calculate_max_hp()
             self.hp = self.max_hp
             if not silent:
                 print(f"\n{colorize('🌟', Colors.BRIGHT_YELLOW)} {colorize(f'{self.name} LEVELED UP!', Colors.BRIGHT_GREEN + Colors.BOLD)} {colorize('🌟', Colors.BRIGHT_YELLOW)}")
                 print(f"{colorize('You are now level', Colors.WHITE)} {colorize(str(self.level), Colors.BRIGHT_CYAN + Colors.BOLD)}!")
-                print(f"{colorize('✨', Colors.BRIGHT_YELLOW)} {colorize('You gained 5 stat points to allocate!', Colors.BRIGHT_GREEN)}")
+                print(f"{colorize('✨', Colors.BRIGHT_YELLOW)} {colorize(f'You gained {STAT_POINTS_PER_LEVEL} stat points to allocate!', Colors.BRIGHT_GREEN)}")
                 input("\nPress Enter to allocate stats...")
             return True
         return False
@@ -234,7 +250,7 @@ class Player:
     def get_max_attack_power(self):
         """Calculate maximum attack power based on STR and talisman bonuses"""
         effective_str = self.get_effective_str()
-        base = 5 + (effective_str * 0.5)  # Base damage scales with STR
+        base = BASE_DAMAGE + (effective_str * STR_DAMAGE_MULTIPLIER)  # Base damage scales with STR
         if self.weapon:
             base += self.weapon['attack']
         return int(base)
@@ -262,7 +278,8 @@ class Player:
         - Defense reduces damage, minimum 1 damage always dealt.
         - Returns actual damage taken for display purposes.
         """
-        actual_damage = max(1, damage - self.get_defense_power())
+        from ..constants import MIN_DAMAGE_ALWAYS
+        actual_damage = max(MIN_DAMAGE_ALWAYS, damage - self.get_defense_power())
         self.hp -= actual_damage
         if self.hp < 0:
             self.hp = 0
@@ -294,16 +311,16 @@ class Player:
         achievements_count = f"{colorize('Achievements:', Colors.BRIGHT_MAGENTA)} {colorize(str(len(self.achievements)), Colors.BRIGHT_MAGENTA)}"
         
         # Skills section
-        fishing_level = getattr(self, 'fishing_level', 1)
-        fishing_exp = getattr(self, 'fishing_exp', 0)
-        fishing_exp_to_next = getattr(self, 'fishing_exp_to_next', 100)
-        cooking_level = getattr(self, 'cooking_level', 1)
-        cooking_exp = getattr(self, 'cooking_exp', 0)
-        cooking_exp_to_next = getattr(self, 'cooking_exp_to_next', 100)
+        fishing_level = getattr(self, 'fishing_level', STARTING_SKILL_LEVEL)
+        fishing_exp = getattr(self, 'fishing_exp', STARTING_SKILL_EXP)
+        fishing_exp_to_next = getattr(self, 'fishing_exp_to_next', STARTING_SKILL_EXP_TO_NEXT)
+        cooking_level = getattr(self, 'cooking_level', STARTING_SKILL_LEVEL)
+        cooking_exp = getattr(self, 'cooking_exp', STARTING_SKILL_EXP)
+        cooking_exp_to_next = getattr(self, 'cooking_exp_to_next', STARTING_SKILL_EXP_TO_NEXT)
         
-        mining_level = getattr(self, 'mining_level', 1)
-        mining_exp = getattr(self, 'mining_exp', 0)
-        mining_exp_to_next = getattr(self, 'mining_exp_to_next', 100)
+        mining_level = getattr(self, 'mining_level', STARTING_SKILL_LEVEL)
+        mining_exp = getattr(self, 'mining_exp', STARTING_SKILL_EXP)
+        mining_exp_to_next = getattr(self, 'mining_exp_to_next', STARTING_SKILL_EXP_TO_NEXT)
         
         fishing_str = f"{colorize('Fishing:', Colors.BRIGHT_CYAN)} {colorize(f'Level {fishing_level}', Colors.BRIGHT_GREEN)} | {colorize(f'XP: {fishing_exp}/{fishing_exp_to_next}', Colors.WHITE)}"
         fishing_bar = f"{colorize('Fishing XP:', Colors.CYAN)} {skill_xp_bar(fishing_exp, fishing_exp_to_next, width=20)}"

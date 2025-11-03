@@ -6,7 +6,11 @@ import random
 from rpg_game.config import DEV_FLAGS
 from rpg_game.ui import clear_screen, Colors, colorize
 from rpg_game.models import Player
-from rpg_game.save.system import load_game, save_game
+from rpg_game.save.system import load_game, save_game, get_save_paths, list_save_slots
+from rpg_game.game.save_slots import select_save_slot_menu
+from rpg_game.constants import DEFAULT_SAVE_SLOT
+import shutil
+from pathlib import Path
 from rpg_game.game import (
     town_menu, view_inventory, view_achievements,
     weapon_shop, armor_shop, hospital,
@@ -33,6 +37,47 @@ def parse_args():
     return parser.parse_args()
 
 
+def migrate_old_save():
+    """Migrate old game_save.json to new save_main.json format"""
+    from rpg_game.save.system import get_save_dir
+    import json
+    from rpg_game.models.player import Player
+    
+    save_dir = get_save_dir()
+    old_save = save_dir / 'game_save.json'
+    
+    if old_save.exists():
+        # Check if main slot already exists
+        new_paths = get_save_paths(DEFAULT_SAVE_SLOT)
+        if not new_paths['save'].exists():
+            try:
+                # Load old save directly from old path
+                with open(old_save, 'r') as f:
+                    data = json.load(f)
+                
+                old_player = Player.from_dict(data)
+                old_player.save_slot = DEFAULT_SAVE_SLOT
+                
+                # Save using new system (this will save with save_slot in the data)
+                if save_game(old_player, DEFAULT_SAVE_SLOT):
+                    print(f"\n{colorize('📦', Colors.BRIGHT_YELLOW)} {colorize('Migrated old save file to save slot "main"', Colors.WHITE)}")
+                    # Backup old save (rename instead of delete for safety)
+                    old_backup = save_dir / 'game_save.json.old'
+                    if not old_backup.exists():
+                        old_save.rename(old_backup)
+                    return True
+            except (json.JSONDecodeError, KeyError, ValueError) as e:
+                from rpg_game.utils.logging import log_error
+                log_error(f"Failed to migrate old save (corrupted): {e}")
+                # Don't migrate corrupted saves
+                return False
+            except Exception as e:
+                from rpg_game.utils.logging import log_error
+                log_error(f"Failed to migrate old save: {e}")
+                return False
+    return False
+
+
 def main():
     clear_screen()
     print("=" * 50)
@@ -40,36 +85,24 @@ def main():
     print("=" * 50)
     print("\nWelcome, adventurer!")
     
-    # Check for save file
-    saved_player = load_game()
-    if saved_player:
-        print("\n💾 A saved game was found!")
-        load_choice = input("Load saved game? (y/n): ").strip().lower()
-        if load_choice == 'y':
-            player = saved_player
-            print(f"\n✅ Welcome back, {player.name}!")
-            input("\nPress Enter to continue...")
-        else:
-            # Get validated player name
-            while True:
-                name = input("\nEnter your name: ").strip()
-                is_valid, error_msg = validate_player_name(name)
-                if is_valid:
-                    break
-                elif not name:  # Empty name defaults to "Hero"
-                    name = "Hero"
-                    break
-                else:
-                    print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(error_msg, Colors.WHITE)}")
-            player = Player(name)
-            print(f"\n✅ Welcome, {player.name}!")
-            print(f"⚔️ You start with a {player.weapon['name']} (+{player.weapon['attack']} Attack)")
-            print(f"💰 You have {player.gold} gold to start your adventure!")
-            input("\nPress Enter to begin...")
-    else:
-        # Get validated player name
+    # Migrate old saves if they exist
+    migrate_old_save()
+    
+    # Show save slot selection menu
+    slot_name, is_new = select_save_slot_menu(allow_new=True, allow_delete=False)
+    
+    if slot_name is None:
+        # User cancelled
+        print("\n👋 Thanks for playing!")
+        return
+    
+    player = None
+    
+    if is_new:
+        # Create new character
+        print(f"\n{colorize('Creating new character in save slot:', Colors.BRIGHT_GREEN)} {colorize(slot_name, Colors.BRIGHT_CYAN)}")
         while True:
-            name = input("\nEnter your name: ").strip()
+            name = input(f"\n{colorize('Enter your name:', Colors.BRIGHT_CYAN)} ").strip()
             is_valid, error_msg = validate_player_name(name)
             if is_valid:
                 break
@@ -79,10 +112,45 @@ def main():
             else:
                 print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(error_msg, Colors.WHITE)}")
         player = Player(name)
-        print(f"\n✅ Welcome, {player.name}!")
+        player.save_slot = slot_name
+        print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Welcome, {player.name}!', Colors.BRIGHT_GREEN)}")
         print(f"⚔️ You start with a {player.weapon['name']} (+{player.weapon['attack']} Attack)")
         print(f"💰 You have {player.gold} gold to start your adventure!")
         input("\nPress Enter to begin...")
+    else:
+        # Load existing save
+        saved_player = load_game(slot_name)
+        if saved_player:
+            player = saved_player
+            print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Welcome back, {player.name}!', Colors.BRIGHT_GREEN)}")
+            input("\nPress Enter to continue...")
+        else:
+            # Slot exists but save is corrupted or missing - ask to create new
+            print(f"\n{colorize('⚠️', Colors.YELLOW)} {colorize(f'Could not load save slot "{slot_name}"', Colors.WHITE)}")
+            create_new = input(f"{colorize('Create a new character in this slot? (y/n): ', Colors.WHITE)}").strip().lower()
+            if create_new == 'y':
+                while True:
+                    name = input(f"\n{colorize('Enter your name:', Colors.BRIGHT_CYAN)} ").strip()
+                    is_valid, error_msg = validate_player_name(name)
+                    if is_valid:
+                        break
+                    elif not name:
+                        name = "Hero"
+                        break
+                    else:
+                        print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(error_msg, Colors.WHITE)}")
+                player = Player(name)
+                player.save_slot = slot_name
+                print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Welcome, {player.name}!', Colors.BRIGHT_GREEN)}")
+                print(f"⚔️ You start with a {player.weapon['name']} (+{player.weapon['attack']} Attack)")
+                print(f"💰 You have {player.gold} gold to start your adventure!")
+                input("\nPress Enter to begin...")
+            else:
+                print("\n👋 Thanks for playing!")
+                return
+    
+    if player is None:
+        return
     
     # Use player's saved location, or default to eslania_city for new games
     current_location = player.current_location

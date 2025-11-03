@@ -2,35 +2,121 @@
 import json
 import platform
 import shutil
+import re
 from pathlib import Path
 from ..ui import Colors, colorize
+from ..constants import DEFAULT_SAVE_SLOT, MAX_SAVE_SLOT_NAME_LENGTH, SAVE_DIR_NAME
 
 
 def get_save_dir():
     """Get the save directory, creating it if needed"""
-    if platform.system() == 'Windows':
-        save_dir = Path.home() / '.terminal_rpg'
-    else:
-        save_dir = Path.home() / '.terminal_rpg'
+    save_dir = Path.home() / SAVE_DIR_NAME
     save_dir.mkdir(parents=True, exist_ok=True)
     return save_dir
 
 
-def get_save_paths():
-    """Get save file paths"""
+def sanitize_slot_name(slot_name):
+    """Sanitize save slot name to be filesystem-safe"""
+    # Remove invalid characters for file names
+    sanitized = re.sub(r'[<>:"/\\|?*]', '', slot_name)
+    # Remove leading/trailing spaces and dots
+    sanitized = sanitized.strip('. ')
+    # Limit length
+    if len(sanitized) > MAX_SAVE_SLOT_NAME_LENGTH:
+        sanitized = sanitized[:MAX_SAVE_SLOT_NAME_LENGTH]
+    # If empty after sanitization, use default
+    if not sanitized:
+        sanitized = DEFAULT_SAVE_SLOT
+    return sanitized
+
+
+def get_save_paths(slot_name=None):
+    """Get save file paths for a specific slot"""
+    if slot_name is None:
+        slot_name = DEFAULT_SAVE_SLOT
+    slot_name = sanitize_slot_name(slot_name)
     save_dir = get_save_dir()
+    base_name = f'save_{slot_name}.json'
     return {
-        'save': save_dir / 'game_save.json',
-        'temp': save_dir / 'game_save.json.tmp',
-        'backup': save_dir / 'game_save.json.bak'
+        'save': save_dir / base_name,
+        'temp': save_dir / f'{base_name}.tmp',
+        'backup': save_dir / f'{base_name}.bak'
     }
 
 
-def save_game(player):
+def list_save_slots():
+    """List all available save slots"""
+    save_dir = get_save_dir()
+    slots = []
+    
+    # Look for all save_*.json files
+    for save_file in save_dir.glob('save_*.json'):
+        # Skip temp and backup files
+        if save_file.name.endswith('.tmp') or save_file.name.endswith('.bak'):
+            continue
+        
+        # Extract slot name from filename (save_<slot_name>.json)
+        match = re.match(r'save_(.+)\.json$', save_file.name)
+        if match:
+            slot_name = match.group(1)
+            # Try to load the save to get player info
+            try:
+                with open(save_file, 'r') as f:
+                    data = json.load(f)
+                    player_name = data.get('name', 'Unknown')
+                    level = data.get('level', 0)
+                    slots.append({
+                        'slot_name': slot_name,
+                        'player_name': player_name,
+                        'level': level,
+                        'path': save_file
+                    })
+            except (json.JSONDecodeError, KeyError, IOError):
+                # Skip corrupted saves, but still list the slot
+                slots.append({
+                    'slot_name': slot_name,
+                    'player_name': 'Corrupted Save',
+                    'level': 0,
+                    'path': save_file
+                })
+    
+    # Sort by slot name
+    slots.sort(key=lambda x: x['slot_name'])
+    return slots
+
+
+def delete_save_slot(slot_name):
+    """Delete a save slot and its backup files"""
+    try:
+        paths = get_save_paths(slot_name)
+        deleted = False
+        
+        for path_type in ['save', 'backup', 'temp']:
+            if paths[path_type].exists():
+                paths[path_type].unlink()
+                deleted = True
+        
+        return deleted
+    except Exception as e:
+        from ..utils.logging import log_error
+        log_error(f"Failed to delete save slot '{slot_name}': {e}")
+        return False
+
+
+def save_game(player, slot_name=None):
     """Save player data to file with atomic write and backup"""
     try:
-        paths = get_save_paths()
+        # Use player's save slot if available, otherwise use provided slot or default
+        if hasattr(player, 'save_slot') and player.save_slot:
+            slot_name = player.save_slot
+        elif slot_name is None:
+            slot_name = DEFAULT_SAVE_SLOT
+        
+        slot_name = sanitize_slot_name(slot_name)
+        paths = get_save_paths(slot_name)
         data = player.to_dict()
+        # Store save slot in player data for future loads
+        data['save_slot'] = slot_name
         
         # Create backup of existing save if it exists
         if paths['save'].exists():
@@ -67,20 +153,30 @@ def save_game(player):
         return False
 
 
-def load_game():
+def load_game(slot_name=None):
     """Load player data from file with backup fallback"""
     # Import here to avoid circular dependency
     from ..models.player import Player
     
     try:
-        paths = get_save_paths()
+        if slot_name is None:
+            slot_name = DEFAULT_SAVE_SLOT
+        
+        slot_name = sanitize_slot_name(slot_name)
+        paths = get_save_paths(slot_name)
         
         # Try main save file first
         if paths['save'].exists():
             try:
                 with open(paths['save'], 'r') as f:
                     data = json.load(f)
-                return Player.from_dict(data)
+                player = Player.from_dict(data)
+                # Restore save slot
+                if 'save_slot' in data:
+                    player.save_slot = data['save_slot']
+                else:
+                    player.save_slot = slot_name
+                return player
             except (json.JSONDecodeError, KeyError, ValueError) as e:
                 # Main save corrupted, try backup
                 from ..utils.logging import log_error, log_warning
@@ -91,6 +187,11 @@ def load_game():
                         with open(paths['backup'], 'r') as f:
                             data = json.load(f)
                         player = Player.from_dict(data)
+                        # Restore save slot
+                        if 'save_slot' in data:
+                            player.save_slot = data['save_slot']
+                        else:
+                            player.save_slot = slot_name
                         print(f"{colorize('✅', Colors.BRIGHT_GREEN)} {colorize('Loaded from backup save!', Colors.BRIGHT_GREEN)}")
                         log_warning("Successfully loaded from backup save")
                         return player

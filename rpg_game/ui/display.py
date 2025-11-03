@@ -1,5 +1,6 @@
 """Display utilities for terminal output"""
 import os
+from ..constants import HEALTH_BAR_HEALTHY_THRESHOLD, HEALTH_BAR_WOUNDED_THRESHOLD
 from .colors import Colors, colorize
 
 
@@ -20,10 +21,10 @@ def health_bar(current, maximum, width=30, show_numbers=True):
     bar = ""
     
     # Create colored health bar
-    if percentage > 0.6:
+    if percentage > HEALTH_BAR_HEALTHY_THRESHOLD:
         # Green for healthy
         bar_color = Colors.BRIGHT_GREEN
-    elif percentage > 0.3:
+    elif percentage > HEALTH_BAR_WOUNDED_THRESHOLD:
         # Yellow for wounded
         bar_color = Colors.YELLOW
     else:
