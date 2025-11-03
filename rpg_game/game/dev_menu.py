@@ -2,7 +2,8 @@
 from ..ui import Colors, colorize, clear_screen
 from ..constants import (
     MAX_SKILL_LEVEL,
-    EXP_MULTIPLIER_PER_LEVEL, STARTING_EXP_TO_NEXT, STAT_POINTS_PER_LEVEL
+    EXP_MULTIPLIER_PER_LEVEL, STARTING_EXP_TO_NEXT, STAT_POINTS_PER_LEVEL,
+    MAX_DEV_LEVEL
 )
 from .dev_tables import view_all_items, view_all_monsters
 
@@ -87,8 +88,8 @@ def set_character_level(player):
             input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
             return
         
-        if new_level > 999:
-            print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize('Level cannot exceed 999!', Colors.WHITE)}")
+        if new_level > MAX_DEV_LEVEL:
+            print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'Level cannot exceed {MAX_DEV_LEVEL}!', Colors.WHITE)}")
             input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
             return
         

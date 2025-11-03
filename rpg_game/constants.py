@@ -150,3 +150,14 @@ NOTIFICATION_DURATION_MEDIUM = 0.5
 NOTIFICATION_DURATION_NORMAL = 1.5
 NOTIFICATION_DURATION_LONG = 2.0
 
+# ============================================================================
+# Shop & Inventory Constants
+# ============================================================================
+MAX_QUANTITY_PER_PURCHASE = 10  # Maximum items that can be bought at once
+MIN_QUANTITY_PER_PURCHASE = 1   # Minimum items that can be bought at once
+
+# ============================================================================
+# Developer Menu Constants
+# ============================================================================
+MAX_DEV_LEVEL = 999              # Maximum level allowed in dev menu
+
