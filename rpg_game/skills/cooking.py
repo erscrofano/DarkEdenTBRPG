@@ -9,7 +9,7 @@ from ..items.inventory import add_item_to_inventory, remove_item_from_inventory,
 from ..items.rarity import format_item_name
 from ..save.system import get_save_dir
 from .core import add_skill_xp
-from .fishing import FISH_TYPES, COOKED_FISH_ITEMS
+from .fishing import FISH_TYPES, COOKED_FISH_ITEMS, GOURMET_FISH_ITEMS, GOURMET_COOKING_CHANCE
 from ..achievements.system import check_achievements
 
 
@@ -24,7 +24,8 @@ COOK_LEVEL_REQUIREMENTS = {
     'seabream': 50,
     'silvery_eel': 60,
     'silvery_shad': 70,
-    'silvery_carp': 80
+    'silvery_carp': 80,
+    'giant_eel': 90
 }
 
 COOKING_XP_AWARDS = {
@@ -37,7 +38,8 @@ COOKING_XP_AWARDS = {
     'seabream': 120,
     'silvery_eel': 160,
     'silvery_shad': 190,
-    'silvery_carp': 240
+    'silvery_carp': 240,
+    'giant_eel': 350
 }
 
 
@@ -184,8 +186,10 @@ def cook_fish(player):
                 # Start automatic cooking with progress bars and cancellation
                 cooked_fish_key = selected_fish['fish_key']
                 cooked_item_template = COOKED_FISH_ITEMS[cooked_fish_key].copy()
+                gourmet_item_template = GOURMET_FISH_ITEMS[cooked_fish_key].copy()
                 success_chance = selected_fish['success_chance']
                 successes = 0
+                gourmet_successes = 0
                 burns = 0
                 total_xp = 0
                 cooking_active = True
@@ -227,7 +231,8 @@ def cook_fish(player):
                         print(f"\n{colorize('Cooking:', Colors.WHITE)} {colorize(cooked_name, Colors.BRIGHT_YELLOW)}")
                         print(f"{colorize('Progress:', Colors.BRIGHT_WHITE)} [{bar}] {colorize(f'{percentage}%', Colors.BRIGHT_YELLOW)}")
                         print(f"\n{colorize('Fish', Colors.WHITE)} {colorize(str(cook_num + 1), Colors.BRIGHT_CYAN)}/{colorize(str(cook_qty), Colors.WHITE)}")
-                        print(f"{colorize('Cooked:', Colors.BRIGHT_GREEN)} {colorize(str(successes), Colors.BRIGHT_GREEN)} | {colorize('Burnt:', Colors.BRIGHT_RED)} {colorize(str(burns), Colors.BRIGHT_RED)}")
+                        gourmet_text = f" | {colorize('Gourmet:', Colors.BRIGHT_MAGENTA)} {colorize(str(gourmet_successes), Colors.BRIGHT_MAGENTA + Colors.BOLD)}" if gourmet_successes > 0 else ""
+                        print(f"{colorize('Cooked:', Colors.BRIGHT_GREEN)} {colorize(str(successes), Colors.BRIGHT_GREEN)}{gourmet_text} | {colorize('Burnt:', Colors.BRIGHT_RED)} {colorize(str(burns), Colors.BRIGHT_RED)}")
                         if total_xp > 0:
                             print(f"{colorize('Total XP:', Colors.BRIGHT_MAGENTA)} {colorize(str(total_xp), Colors.BRIGHT_GREEN)}")
                         print(f"\n{colorize('Press Enter to stop cooking', Colors.YELLOW)}")
@@ -241,24 +246,42 @@ def cook_fish(player):
                     
                     # Determine success/failure
                     if random.random() < success_chance:
-                        # Success - create cooked fish
-                        add_item_to_inventory(player.inventory, cooked_item_template.copy())
-                        successes += 1
-                        xp_gain = selected_fish['xp_per_cook']
-                        total_xp += xp_gain
-                        add_skill_xp(player, "cooking", xp_gain)
+                        # Success - check for gourmet (1% chance)
+                        is_gourmet = random.random() < GOURMET_COOKING_CHANCE
+                        
+                        if is_gourmet:
+                            # Create gourmet version (4x heal and sell value)
+                            add_item_to_inventory(player.inventory, gourmet_item_template.copy())
+                            gourmet_successes += 1
+                            successes += 1
+                            xp_gain = selected_fish['xp_per_cook'] * 2  # Bonus XP for gourmet
+                            total_xp += xp_gain
+                            add_skill_xp(player, "cooking", xp_gain)
+                            
+                            # Gourmet notification (special)
+                            if not DEV_FLAGS['quiet']:
+                                from ..constants import NOTIFICATION_DURATION_LONG
+                                gourmet_name = GOURMET_FISH_ITEMS[cooked_fish_key]['name']
+                                show_notification(f"✨ GOURMET! {gourmet_name}! +{xp_gain} XP", Colors.BRIGHT_MAGENTA, NOTIFICATION_DURATION_LONG, critical=True)
+                        else:
+                            # Normal cooked fish
+                            add_item_to_inventory(player.inventory, cooked_item_template.copy())
+                            successes += 1
+                            xp_gain = selected_fish['xp_per_cook']
+                            total_xp += xp_gain
+                            add_skill_xp(player, "cooking", xp_gain)
+                            
+                            # Brief success notification
+                            if not DEV_FLAGS['quiet']:
+                                from ..constants import NOTIFICATION_DURATION_SHORT
+                                cooked_name = COOKED_FISH_ITEMS[cooked_fish_key]['name']
+                                show_notification(f"🔥 Cooked {cooked_name}! +{xp_gain} XP", Colors.BRIGHT_GREEN, NOTIFICATION_DURATION_SHORT)
                         
                         # Check achievements
                         if cook_num == 0:
                             check_achievements(player, 'first_cook')
-                        if cooked_fish_key == 'silvery_carp':
+                        if cooked_fish_key == 'silvery_carp' or cooked_fish_key == 'giant_eel':
                             check_achievements(player, 'masterpiece')
-                        
-                        # Brief success notification
-                        if not DEV_FLAGS['quiet']:
-                            from ..constants import NOTIFICATION_DURATION_SHORT
-                            cooked_name = COOKED_FISH_ITEMS[cooked_fish_key]['name']
-                            show_notification(f"🔥 Cooked {cooked_name}! +{xp_gain} XP", Colors.BRIGHT_GREEN, NOTIFICATION_DURATION_SHORT)
                     else:
                         # Burnt - remove fish, no item created
                         burns += 1
@@ -307,8 +330,18 @@ def cook_fish(player):
                 if successes > 0:
                     cooked_name = COOKED_FISH_ITEMS[cooked_fish_key]['name']
                     heal_amount = COOKED_FISH_ITEMS[cooked_fish_key]['heal']
-                    print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Cooked {successes}x {cooked_name}!', Colors.BRIGHT_GREEN)}")
-                    print(f"{colorize('   Heals:', Colors.WHITE)} {heal_amount} HP each")
+                    regular_successes = successes - gourmet_successes
+                    
+                    if regular_successes > 0:
+                        print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Cooked {regular_successes}x {cooked_name}!', Colors.BRIGHT_GREEN)}")
+                        print(f"{colorize('   Heals:', Colors.WHITE)} {heal_amount} HP each")
+                    
+                    if gourmet_successes > 0:
+                        gourmet_name = GOURMET_FISH_ITEMS[cooked_fish_key]['name']
+                        gourmet_heal = GOURMET_FISH_ITEMS[cooked_fish_key]['heal']
+                        gourmet_sell = GOURMET_FISH_ITEMS[cooked_fish_key]['sell_value']
+                        print(f"\n{colorize('✨', Colors.BRIGHT_MAGENTA)} {colorize(f'GOURMET! {gourmet_successes}x {gourmet_name}!', Colors.BRIGHT_MAGENTA + Colors.BOLD)}")
+                        print(f"{colorize('   Heals:', Colors.WHITE)} {gourmet_heal} HP each | {colorize('Worth:', Colors.YELLOW)} {gourmet_sell:,}g each")
                 
                 if burns > 0:
                     print(f"\n{colorize('💨', Colors.BRIGHT_RED)} {colorize(f'Burnt {burns}x fish…', Colors.WHITE)}")

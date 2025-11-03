@@ -15,16 +15,17 @@ from ..achievements.system import check_achievements
 
 # Fishing system - Fish types with rarity (sell_value determines rarity)
 FISH_TYPES = {
-    'goby': {'name': 'Goby', 'type': 'material', 'sell_value': 2, 'description': 'A small, common fish', 'catch_chance': 0.30, 'key': 'goby'},  # Most common
-    'mackerel': {'name': 'Mackerel', 'type': 'material', 'sell_value': 5, 'description': 'A common saltwater fish', 'catch_chance': 0.20, 'key': 'mackerel'},
-    'salmon': {'name': 'Salmon', 'type': 'material', 'sell_value': 8, 'description': 'A popular freshwater fish', 'catch_chance': 0.15, 'key': 'salmon'},
-    'eel': {'name': 'Eel', 'type': 'material', 'sell_value': 12, 'description': 'A slimy, elusive fish', 'catch_chance': 0.12, 'key': 'eel'},
-    'shad': {'name': 'Shad', 'type': 'material', 'sell_value': 15, 'description': 'A medium-sized fish', 'catch_chance': 0.08, 'key': 'shad'},
-    'carp': {'name': 'Carp', 'type': 'material', 'sell_value': 18, 'description': 'A large bottom-feeding fish', 'catch_chance': 0.06, 'key': 'carp'},
-    'sea_bream': {'name': 'Sea Bream', 'type': 'material', 'sell_value': 25, 'description': 'A prized saltwater fish', 'catch_chance': 0.04, 'key': 'seabream'},
-    'silvery_eel': {'name': 'Silvery Eel', 'type': 'material', 'sell_value': 50, 'description': 'A rare silvery eel', 'catch_chance': 0.03, 'key': 'silvery_eel'},
-    'silvery_shad': {'name': 'Silvery Shad', 'type': 'material', 'sell_value': 75, 'description': 'An extremely rare silvery shad', 'catch_chance': 0.015, 'key': 'silvery_shad'},
-    'silvery_carp': {'name': 'Silvery Carp', 'type': 'material', 'sell_value': 150, 'description': 'The legendary silvery carp - incredibly rare!', 'catch_chance': 0.005, 'key': 'silvery_carp'},  # Most rare
+    'goby': {'name': 'Goby', 'type': 'material', 'sell_value': 50, 'description': 'A small, common fish', 'catch_chance': 0.30, 'key': 'goby'},  # Most common
+    'mackerel': {'name': 'Mackerel', 'type': 'material', 'sell_value': 100, 'description': 'A common saltwater fish', 'catch_chance': 0.20, 'key': 'mackerel'},
+    'salmon': {'name': 'Salmon', 'type': 'material', 'sell_value': 250, 'description': 'A popular freshwater fish', 'catch_chance': 0.15, 'key': 'salmon'},
+    'eel': {'name': 'Eel', 'type': 'material', 'sell_value': 1000, 'description': 'A slimy, elusive fish', 'catch_chance': 0.12, 'key': 'eel'},
+    'shad': {'name': 'Shad', 'type': 'material', 'sell_value': 2500, 'description': 'A medium-sized fish', 'catch_chance': 0.08, 'key': 'shad'},
+    'carp': {'name': 'Carp', 'type': 'material', 'sell_value': 5000, 'description': 'A large bottom-feeding fish', 'catch_chance': 0.06, 'key': 'carp'},
+    'sea_bream': {'name': 'Sea Bream', 'type': 'material', 'sell_value': 10000, 'description': 'A prized saltwater fish', 'catch_chance': 0.04, 'key': 'seabream'},
+    'silvery_eel': {'name': 'Silvery Eel', 'type': 'material', 'sell_value': 30000, 'description': 'A rare silvery eel', 'catch_chance': 0.03, 'key': 'silvery_eel'},
+    'silvery_shad': {'name': 'Silvery Shad', 'type': 'material', 'sell_value': 50000, 'description': 'An extremely rare silvery shad', 'catch_chance': 0.015, 'key': 'silvery_shad'},
+    'silvery_carp': {'name': 'Silvery Carp', 'type': 'material', 'sell_value': 100000, 'description': 'The legendary silvery carp - incredibly rare!', 'catch_chance': 0.005, 'key': 'silvery_carp'},
+    'giant_eel': {'name': 'Giant Eel', 'type': 'material', 'sell_value': 200000, 'description': 'A massive legendary eel of unimaginable size!', 'catch_chance': 0.01, 'key': 'giant_eel'},  # Most rare
 }
 
 # Skill tables - Fishing requirements and XP
@@ -38,7 +39,8 @@ FISH_LEVEL_REQUIREMENTS = {
     'seabream': 50,
     'silvery_eel': 60,
     'silvery_shad': 70,
-    'silvery_carp': 80
+    'silvery_carp': 80,
+    'giant_eel': 90
 }
 
 FISHING_XP_AWARDS = {
@@ -51,22 +53,42 @@ FISHING_XP_AWARDS = {
     'seabream': 75,
     'silvery_eel': 110,
     'silvery_shad': 150,
-    'silvery_carp': 200
+    'silvery_carp': 200,
+    'giant_eel': 300
 }
 
 # Cooked fish items - created when cooking succeeds
 COOKED_FISH_ITEMS = {
-    'goby': {'name': 'Cooked Goby', 'type': 'consumable', 'heal': 10, 'sell_value': 2},
-    'mackerel': {'name': 'Cooked Mackerel', 'type': 'consumable', 'heal': 20, 'sell_value': 6},
-    'salmon': {'name': 'Cooked Salmon', 'type': 'consumable', 'heal': 35, 'sell_value': 10},
-    'eel': {'name': 'Cooked Eel', 'type': 'consumable', 'heal': 50, 'sell_value': 14},
-    'shad': {'name': 'Cooked Shad', 'type': 'consumable', 'heal': 70, 'sell_value': 18},
-    'carp': {'name': 'Cooked Carp', 'type': 'consumable', 'heal': 90, 'sell_value': 22},
-    'seabream': {'name': 'Cooked Seabream', 'type': 'consumable', 'heal': 120, 'sell_value': 32},
-    'silvery_eel': {'name': 'Cooked Silvery Eel', 'type': 'consumable', 'heal': 150, 'sell_value': 60},
-    'silvery_shad': {'name': 'Cooked Silvery Shad', 'type': 'consumable', 'heal': 180, 'sell_value': 90},
-    'silvery_carp': {'name': 'Cooked Silvery Carp', 'type': 'consumable', 'heal': 220, 'sell_value': 150}
+    'goby': {'name': 'Cooked Goby', 'type': 'consumable', 'heal': 10, 'sell_value': 100},
+    'mackerel': {'name': 'Cooked Mackerel', 'type': 'consumable', 'heal': 20, 'sell_value': 200},
+    'salmon': {'name': 'Cooked Salmon', 'type': 'consumable', 'heal': 35, 'sell_value': 500},
+    'eel': {'name': 'Cooked Eel', 'type': 'consumable', 'heal': 50, 'sell_value': 2000},
+    'shad': {'name': 'Cooked Shad', 'type': 'consumable', 'heal': 70, 'sell_value': 5000},
+    'carp': {'name': 'Cooked Carp', 'type': 'consumable', 'heal': 90, 'sell_value': 10000},
+    'seabream': {'name': 'Cooked Seabream', 'type': 'consumable', 'heal': 120, 'sell_value': 20000},
+    'silvery_eel': {'name': 'Cooked Silvery Eel', 'type': 'consumable', 'heal': 150, 'sell_value': 60000},
+    'silvery_shad': {'name': 'Cooked Silvery Shad', 'type': 'consumable', 'heal': 180, 'sell_value': 100000},
+    'silvery_carp': {'name': 'Cooked Silvery Carp', 'type': 'consumable', 'heal': 220, 'sell_value': 200000},
+    'giant_eel': {'name': 'Cooked Giant Eel', 'type': 'consumable', 'heal': 300, 'sell_value': 400000}
 }
+
+# Gourmet fish items - 1% chance when cooking (4x heal and 4x sell value)
+GOURMET_FISH_ITEMS = {
+    'goby': {'name': 'Gourmet Goby', 'type': 'consumable', 'heal': 40, 'sell_value': 400},
+    'mackerel': {'name': 'Gourmet Mackerel', 'type': 'consumable', 'heal': 80, 'sell_value': 800},
+    'salmon': {'name': 'Gourmet Salmon', 'type': 'consumable', 'heal': 140, 'sell_value': 2000},
+    'eel': {'name': 'Gourmet Eel', 'type': 'consumable', 'heal': 200, 'sell_value': 8000},
+    'shad': {'name': 'Gourmet Shad', 'type': 'consumable', 'heal': 280, 'sell_value': 20000},
+    'carp': {'name': 'Gourmet Carp', 'type': 'consumable', 'heal': 360, 'sell_value': 40000},
+    'seabream': {'name': 'Gourmet Seabream', 'type': 'consumable', 'heal': 480, 'sell_value': 80000},
+    'silvery_eel': {'name': 'Gourmet Silvery Eel', 'type': 'consumable', 'heal': 600, 'sell_value': 240000},
+    'silvery_shad': {'name': 'Gourmet Silvery Shad', 'type': 'consumable', 'heal': 720, 'sell_value': 400000},
+    'silvery_carp': {'name': 'Gourmet Silvery Carp', 'type': 'consumable', 'heal': 880, 'sell_value': 800000},
+    'giant_eel': {'name': 'Gourmet Giant Eel', 'type': 'consumable', 'heal': 1200, 'sell_value': 1600000}
+}
+
+# Gourmet cooking chance
+GOURMET_COOKING_CHANCE = 0.01  # 1% chance
 
 
 def get_fishing_catch(player, eligible_fish):

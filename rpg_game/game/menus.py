@@ -45,7 +45,7 @@ def view_achievements(player):
         'Streak Achievements': [k for k, v in ALL_ACHIEVEMENTS.items() if v['type'] == 'streak'],
         'Item Achievements': [k for k, v in ALL_ACHIEVEMENTS.items() if v['type'] == 'rare_drop'],
         'Talisman Achievements': [k for k, v in ALL_ACHIEVEMENTS.items() if v['type'] in ['talisman_found', 'talisman_count', 'talisman_hacker']],
-        'Tower Achievements': [k for k, v in ALL_ACHIEVEMENTS.items() if v['type'] == 'tower'],
+        'Tepes Lair Achievements': [k for k, v in ALL_ACHIEVEMENTS.items() if v['type'] == 'tower'],
         'Fishing Achievements': [k for k, v in ALL_ACHIEVEMENTS.items() if v['type'] == 'fishing_level'],
         'Cooking Achievements': [k for k, v in ALL_ACHIEVEMENTS.items() if v['type'] == 'cooking_level'],
         'Mining Achievements': [k for k, v in ALL_ACHIEVEMENTS.items() if v['type'] == 'mining_level'],

@@ -158,7 +158,7 @@ def explore_tepes_lair(player):
         choice = input(f"\n{colorize('What do you do?', Colors.BRIGHT_CYAN)} ").strip()
         
         if choice == '1':
-            # Generate scaled enemy for this tower floor
+            # Generate scaled enemy for this Lair floor
             # Lair floors get progressively harder: floor N = level N difficulty
             difficulty_level = lair_level
             
@@ -291,7 +291,7 @@ def explore_tepes_lair(player):
                 continue
         
         elif choice == '2':
-            # Leave tower with all loot
+            # Leave Lair with all loot
             if lair_level > 1:
                 clear_screen()
                 print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
@@ -304,7 +304,7 @@ def explore_tepes_lair(player):
                 print(f"  {colorize('Gold:', Colors.BRIGHT_YELLOW)} {lair_gold_gained}")
                 print(f"  {colorize('Experience:', Colors.BRIGHT_GREEN)} {lair_exp_gained}")
                 
-                # Update highest tower floor and check achievements
+                # Update highest Lair floor and check achievements
                 if floors_cleared > player.highest_tower_floor:
                     player.highest_tower_floor = floors_cleared
                 check_achievements(player, 'tower_floor', floors_cleared)
