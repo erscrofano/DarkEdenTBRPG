@@ -139,8 +139,10 @@ def log_fishing_outcome(player, fish_data, quantity, xp_gained):
         fish_name = fish_data['name'] if fish_data else "Various"
         with open(log_file, 'a', encoding='utf-8') as f:
             f.write(f"[{timestamp}] {player.name} (Fishing Lv.{player.fishing_level}) caught {quantity}x {fish_name} (+{xp_gained} XP)\n")
-    except Exception:
-        pass  # Fail silently
+    except (OSError, PermissionError, IOError) as e:
+        # Log error but don't fail fishing
+        from ..utils.logging import log_warning
+        log_warning(f"Failed to log fishing outcome: {e}")
 
 
 def go_fishing(player):

@@ -4,8 +4,10 @@ from .colors import Colors, colorize
 
 
 def clear_screen():
-    """Clear the terminal screen"""
-    os.system('cls' if os.name == 'nt' else 'clear')
+    """Clear the terminal screen using ANSI escape sequences (safer than os.system)"""
+    # Use ANSI escape sequence to clear screen (works on most terminals)
+    # This is safer than os.system() which could be vulnerable to command injection
+    print('\033[2J\033[H', end='')
 
 
 def health_bar(current, maximum, width=30, show_numbers=True):

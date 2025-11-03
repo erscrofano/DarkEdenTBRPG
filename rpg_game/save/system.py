@@ -54,13 +54,16 @@ def save_game(player):
     except Exception as e:
         error_msg = f"Error saving game: {e}"
         print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(error_msg, Colors.WHITE)}")
+        # Log the error
+        from ..utils.logging import log_error
+        log_error(f"Failed to save game: {e}", exc_info=True)
         # Clean up temp file if it exists
         try:
             paths = get_save_paths()
             if paths['temp'].exists():
                 paths['temp'].unlink()
-        except:
-            pass
+        except (OSError, PermissionError) as cleanup_error:
+            log_error(f"Failed to clean up temp save file: {cleanup_error}")
         return False
 
 
@@ -78,8 +81,10 @@ def load_game():
                 with open(paths['save'], 'r') as f:
                     data = json.load(f)
                 return Player.from_dict(data)
-            except Exception as e:
+            except (json.JSONDecodeError, KeyError, ValueError) as e:
                 # Main save corrupted, try backup
+                from ..utils.logging import log_error, log_warning
+                log_error(f"Main save file corrupted: {e}", exc_info=True)
                 print(f"\n{colorize('⚠️', Colors.YELLOW)} {colorize('Main save file corrupted. Attempting backup...', Colors.WHITE)}")
                 if paths['backup'].exists():
                     try:
@@ -87,13 +92,23 @@ def load_game():
                             data = json.load(f)
                         player = Player.from_dict(data)
                         print(f"{colorize('✅', Colors.BRIGHT_GREEN)} {colorize('Loaded from backup save!', Colors.BRIGHT_GREEN)}")
+                        log_warning("Successfully loaded from backup save")
                         return player
-                    except Exception as e2:
+                    except (json.JSONDecodeError, KeyError, ValueError) as e2:
+                        log_error(f"Backup save file also corrupted: {e2}", exc_info=True)
                         print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'Backup also corrupted: {e2}', Colors.WHITE)}")
         
         return None
-    except Exception as e:
+    except (OSError, PermissionError, IOError) as e:
+        from ..utils.logging import log_error
         error_msg = f"Error loading game: {e}"
+        log_error(f"Failed to load game: {e}", exc_info=True)
+        print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(error_msg, Colors.WHITE)}")
+        return None
+    except Exception as e:
+        from ..utils.logging import log_error
+        error_msg = f"Unexpected error loading game: {e}"
+        log_error(f"Unexpected error loading game: {e}", exc_info=True)
         print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(error_msg, Colors.WHITE)}")
         return None
 

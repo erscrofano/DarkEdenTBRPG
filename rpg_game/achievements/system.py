@@ -103,8 +103,10 @@ def log_rare_drop(player, item, sell_value):
         
         with open(log_file, 'a', encoding='utf-8') as f:
             f.write(f"[{timestamp}] {player.name} (Lv.{player.level}) found {rarity.upper()}: {item['name']} (Value: {sell_value}g)\n")
-    except Exception:
-        pass  # Fail silently if logging fails
+    except (OSError, PermissionError, IOError) as e:
+        # Log error but don't fail achievement checking
+        from ..utils.logging import log_warning
+        log_warning(f"Failed to log rare drop: {e}")
 
 
 def check_achievements(player, achievement_type, value=None):

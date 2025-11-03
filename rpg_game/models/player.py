@@ -144,8 +144,10 @@ class Player:
             # Auto-resave with new schema
             try:
                 save_game(player)
-            except:
-                pass  # Fail silently if resave fails
+            except Exception as e:
+                # Log error but don't fail loading
+                from ..utils.logging import log_warning
+                log_warning(f"Failed to auto-resave player after migration: {e}")
         else:
             player.fishing_level = data.get('fishing_level', 1)
             player.fishing_exp = data.get('fishing_exp', 0)

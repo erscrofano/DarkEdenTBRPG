@@ -52,8 +52,10 @@ def log_cooking_outcome(player, cooked_name, successes, burns, xp_gained):
         
         with open(log_file, 'a', encoding='utf-8') as f:
             f.write(f"[{timestamp}] {player.name} (Cooking Lv.{player.cooking_level}) cooked {successes}x {cooked_name} ({burns} burnt) (+{xp_gained} XP)\n")
-    except Exception:
-        pass  # Fail silently
+    except (OSError, PermissionError, IOError) as e:
+        # Log error but don't fail cooking
+        from ..utils.logging import log_warning
+        log_warning(f"Failed to log cooking outcome: {e}")
 
 
 def cook_fish(player):

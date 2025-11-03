@@ -15,6 +15,8 @@ from rpg_game.game import (
     knight_guild, army_guild, cleric_guild, general_store, fishing_store, mining_store, pimping_service
 )
 from rpg_game.skills import go_fishing, go_mining, cook_fish, training_simulator
+from rpg_game.utils.input_validation import validate_player_name
+from rpg_game.game.travel import handle_travel
 
 
 def parse_args():
@@ -48,18 +50,34 @@ def main():
             print(f"\n✅ Welcome back, {player.name}!")
             input("\nPress Enter to continue...")
         else:
-            name = input("\nEnter your name: ").strip()
-            if not name:
-                name = "Hero"
+            # Get validated player name
+            while True:
+                name = input("\nEnter your name: ").strip()
+                is_valid, error_msg = validate_player_name(name)
+                if is_valid:
+                    break
+                elif not name:  # Empty name defaults to "Hero"
+                    name = "Hero"
+                    break
+                else:
+                    print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(error_msg, Colors.WHITE)}")
             player = Player(name)
             print(f"\n✅ Welcome, {player.name}!")
             print(f"⚔️ You start with a {player.weapon['name']} (+{player.weapon['attack']} Attack)")
             print(f"💰 You have {player.gold} gold to start your adventure!")
             input("\nPress Enter to begin...")
     else:
-        name = input("\nEnter your name: ").strip()
-        if not name:
-            name = "Hero"
+        # Get validated player name
+        while True:
+            name = input("\nEnter your name: ").strip()
+            is_valid, error_msg = validate_player_name(name)
+            if is_valid:
+                break
+            elif not name:  # Empty name defaults to "Hero"
+                name = "Hero"
+                break
+            else:
+                print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(error_msg, Colors.WHITE)}")
         player = Player(name)
         print(f"\n✅ Welcome, {player.name}!")
         print(f"⚔️ You start with a {player.weapon['name']} (+{player.weapon['attack']} Attack)")
@@ -128,107 +146,14 @@ def main():
             elif choice == '15':
                 # Travel to Another Location
                 travel_choice = locations_menu(player)
-                travel_cost = 5000  # Cost for non-local travel
-                
-                if travel_choice == '1':  # Eslania City
-                    if current_location == 'eslania_city':
-                        clear_screen()
-                        print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
-                        print(colorize("⚠️  ALREADY THERE  ⚠️", Colors.BRIGHT_YELLOW + Colors.BOLD))
-                        print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
-                        print(f"\n{colorize('You are already in Eslania City!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                    else:
-                        # Traveling from another location - charge cost
-                        if player.gold >= travel_cost:
-                            player.gold -= travel_cost
-                            current_location = 'eslania_city'
-                            player.current_location = 'eslania_city'
-                            print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Traveled to Eslania City for {travel_cost:,} gold!', Colors.WHITE)}")
-                            input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                        else:
-                            print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'You need {travel_cost:,} gold to travel!', Colors.WHITE)}")
-                            input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                elif travel_choice == '2':  # Perona Outpost
-                    if current_location == 'perona_outpost':
-                        clear_screen()
-                        print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
-                        print(colorize("⚠️  ALREADY THERE  ⚠️", Colors.BRIGHT_YELLOW + Colors.BOLD))
-                        print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
-                        print(f"\n{colorize('You are already in Perona Outpost!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                    else:
-                        # Traveling from another location - charge cost
-                        if player.gold >= travel_cost:
-                            player.gold -= travel_cost
-                            current_location = 'perona_outpost'
-                            player.current_location = 'perona_outpost'
-                            print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Traveled to Perona Outpost for {travel_cost:,} gold!', Colors.WHITE)}")
-                            input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                        else:
-                            print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'You need {travel_cost:,} gold to travel!', Colors.WHITE)}")
-                            input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                elif travel_choice == '3':  # Limbo Dungeon
-                    # Non-local dungeon - always costs money
-                    if player.gold >= travel_cost:
-                        player.gold -= travel_cost
-                        print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Traveled to Limbo Dungeon for {travel_cost:,} gold!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                        floors = {'b1': {'level': 1, 'multiplier': 0.9}, 'b2': {'level': 3, 'multiplier': 0.95}, 'b3': {'level': 5, 'multiplier': 1.0}}
-                        result = explore_multi_floor_dungeon(player, 'limbo_dungeon', floors, 'b1')
-                        if result == 'previous':
-                            current_location = 'eslania_city'  # Return to previous location
-                            player.current_location = 'eslania_city'
-                    else:
-                        print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'You need {travel_cost:,} gold to travel!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                elif travel_choice == '4':  # Lost Taiyan
-                    # Non-local dungeon - always costs money
-                    if player.gold >= travel_cost:
-                        player.gold -= travel_cost
-                        print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Traveled to Lost Taiyan for {travel_cost:,} gold!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                        floors = {'b1': {'level': 8, 'multiplier': 1.2}, 'b2': {'level': 12, 'multiplier': 1.3}, 'b3': {'level': 16, 'multiplier': 1.4}}
-                        result = explore_multi_floor_dungeon(player, 'lost_taiyan', floors, 'b1')
-                        if result == 'previous':
-                            current_location = 'eslania_city'  # Return to previous location
-                            player.current_location = 'eslania_city'
-                    else:
-                        print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'You need {travel_cost:,} gold to travel!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                elif travel_choice == '5':  # Rhaom Dungeon
-                    # Non-local dungeon - always costs money
-                    if player.gold >= travel_cost:
-                        player.gold -= travel_cost
-                        print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Traveled to Rhaom Dungeon for {travel_cost:,} gold!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                        floors = {'b1': {'level': 3, 'multiplier': 1.0}, 'b2': {'level': 6, 'multiplier': 1.1}, 'b3': {'level': 10, 'multiplier': 1.2}}
-                        result = explore_multi_floor_dungeon(player, 'rhaom_dungeon', floors, 'b1')
-                        if result == 'previous':
-                            current_location = 'eslania_city'  # Return to previous location
-                            player.current_location = 'eslania_city'
-                    else:
-                        print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'You need {travel_cost:,} gold to travel!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                elif travel_choice == '6':  # Tepes lair
-                    # Non-local dungeon - always costs money
-                    if player.gold >= travel_cost:
-                        player.gold -= travel_cost
-                        print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Traveled to Tepes lair for {travel_cost:,} gold!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                        result = explore_tepes_lair(player)
-                        if result == 'game_over':
+                if travel_choice and travel_choice != '7':  # '7' means Back
+                    new_location, success = handle_travel(player, travel_choice, current_location)
+                    if success:
+                        if new_location == 'game_over':
                             game_running = False
-                        elif result == 'previous' or result == 'town':
-                            current_location = 'eslania_city'  # Return to previous location
-                            player.current_location = 'eslania_city'
                         else:
-                            current_location = result
-                            player.current_location = result
-                    else:
-                        print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'You need {travel_cost:,} gold to travel!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                # travel_choice == '7' means Back, so do nothing
+                            current_location = new_location
+                            player.current_location = new_location
             elif choice == '16':
                 clear_screen()
                 print(player.get_stats())
@@ -295,107 +220,14 @@ def main():
             elif choice == '2':
                 # Travel to Another Location
                 travel_choice = locations_menu(player)
-                travel_cost = 5000  # Cost for non-local travel
-                
-                if travel_choice == '1':  # Eslania City
-                    if current_location == 'eslania_city':
-                        clear_screen()
-                        print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
-                        print(colorize("⚠️  ALREADY THERE  ⚠️", Colors.BRIGHT_YELLOW + Colors.BOLD))
-                        print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
-                        print(f"\n{colorize('You are already in Eslania City!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                    else:
-                        # Traveling from another location - charge cost
-                        if player.gold >= travel_cost:
-                            player.gold -= travel_cost
-                            current_location = 'eslania_city'
-                            player.current_location = 'eslania_city'
-                            print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Traveled to Eslania City for {travel_cost:,} gold!', Colors.WHITE)}")
-                            input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                        else:
-                            print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'You need {travel_cost:,} gold to travel!', Colors.WHITE)}")
-                            input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                elif travel_choice == '2':  # Perona Outpost
-                    if current_location == 'perona_outpost':
-                        clear_screen()
-                        print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
-                        print(colorize("⚠️  ALREADY THERE  ⚠️", Colors.BRIGHT_YELLOW + Colors.BOLD))
-                        print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
-                        print(f"\n{colorize('You are already in Perona Outpost!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                    else:
-                        # Traveling from another location - charge cost
-                        if player.gold >= travel_cost:
-                            player.gold -= travel_cost
-                            current_location = 'perona_outpost'
-                            player.current_location = 'perona_outpost'
-                            print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Traveled to Perona Outpost for {travel_cost:,} gold!', Colors.WHITE)}")
-                            input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                        else:
-                            print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'You need {travel_cost:,} gold to travel!', Colors.WHITE)}")
-                            input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                elif travel_choice == '3':  # Limbo Dungeon
-                    # Non-local dungeon - always costs money
-                    if player.gold >= travel_cost:
-                        player.gold -= travel_cost
-                        print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Traveled to Limbo Dungeon for {travel_cost:,} gold!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                        floors = {'b1': {'level': 1, 'multiplier': 0.9}, 'b2': {'level': 3, 'multiplier': 0.95}, 'b3': {'level': 5, 'multiplier': 1.0}}
-                        result = explore_multi_floor_dungeon(player, 'limbo_dungeon', floors, 'b1')
-                        if result == 'previous':
-                            current_location = 'perona_outpost'  # Return to previous location
-                            player.current_location = 'perona_outpost'
-                    else:
-                        print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'You need {travel_cost:,} gold to travel!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                elif travel_choice == '4':  # Lost Taiyan
-                    # Non-local dungeon - always costs money
-                    if player.gold >= travel_cost:
-                        player.gold -= travel_cost
-                        print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Traveled to Lost Taiyan for {travel_cost:,} gold!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                        floors = {'b1': {'level': 8, 'multiplier': 1.2}, 'b2': {'level': 12, 'multiplier': 1.3}, 'b3': {'level': 16, 'multiplier': 1.4}}
-                        result = explore_multi_floor_dungeon(player, 'lost_taiyan', floors, 'b1')
-                        if result == 'previous':
-                            current_location = 'perona_outpost'  # Return to previous location
-                            player.current_location = 'perona_outpost'
-                    else:
-                        print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'You need {travel_cost:,} gold to travel!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                elif travel_choice == '5':  # Rhaom Dungeon
-                    # Non-local dungeon - always costs money
-                    if player.gold >= travel_cost:
-                        player.gold -= travel_cost
-                        print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Traveled to Rhaom Dungeon for {travel_cost:,} gold!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                        floors = {'b1': {'level': 3, 'multiplier': 1.0}, 'b2': {'level': 6, 'multiplier': 1.1}, 'b3': {'level': 10, 'multiplier': 1.2}}
-                        result = explore_multi_floor_dungeon(player, 'rhaom_dungeon', floors, 'b1')
-                        if result == 'previous':
-                            current_location = 'perona_outpost'  # Return to previous location
-                            player.current_location = 'perona_outpost'
-                    else:
-                        print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'You need {travel_cost:,} gold to travel!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                elif travel_choice == '6':  # Tepes lair
-                    # Non-local dungeon - always costs money
-                    if player.gold >= travel_cost:
-                        player.gold -= travel_cost
-                        print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Traveled to Tepes lair for {travel_cost:,} gold!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                        result = explore_tepes_lair(player)
-                        if result == 'game_over':
+                if travel_choice and travel_choice != '7':  # '7' means Back
+                    new_location, success = handle_travel(player, travel_choice, current_location)
+                    if success:
+                        if new_location == 'game_over':
                             game_running = False
-                        elif result == 'previous' or result == 'town':
-                            current_location = 'perona_outpost'  # Return to previous location
-                            player.current_location = 'perona_outpost'
                         else:
-                            current_location = result
-                            player.current_location = result
-                    else:
-                        print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(f'You need {travel_cost:,} gold to travel!', Colors.WHITE)}")
-                        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
-                # travel_choice == '7' means Back, so do nothing
+                            current_location = new_location
+                            player.current_location = new_location
             elif choice == '3':  # View Stats
                 clear_screen()
                 print(player.get_stats())
