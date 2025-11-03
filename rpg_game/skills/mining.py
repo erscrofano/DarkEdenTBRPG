@@ -159,6 +159,11 @@ def go_mining(player):
     print(f"\n{colorize(location.description, Colors.WHITE)}")
     print(f"\n{colorize('Mining will automatically continue. Press Enter to stop.', Colors.YELLOW)}")
     print(f"{colorize('Mining Level:', Colors.BRIGHT_MAGENTA)} {colorize(str(player.mining_level), Colors.BRIGHT_GREEN)}")
+    if player.tool and player.tool.get('type') == 'tool' and 'mining_speed_boost' in player.tool:
+        boost = abs(player.tool['mining_speed_boost'])
+        print(f"{colorize('Equipped Tool:', Colors.BRIGHT_MAGENTA)} {colorize(player.tool['name'], Colors.BRIGHT_GREEN)} {colorize(f'(-{boost}s)', Colors.WHITE)}")
+    else:
+        print(f"{colorize('Equipped Tool:', Colors.BRIGHT_MAGENTA)} {colorize('None', Colors.YELLOW)} {colorize('(No speed bonus)', Colors.GRAY)}")
     print(colorize("=" * 60, Colors.MAGENTA))
     input(f"\n{colorize('Press Enter to start mining...', Colors.BRIGHT_CYAN)}")
     
@@ -168,24 +173,21 @@ def go_mining(player):
     mine_count = 0
     total_xp = 0
     
-    # Check inventory for pickaxes (use best one if multiple)
+    # Check equipped tool for pickaxe bonus
     mining_speed_boost = 0
-    for item in player.inventory:
-        if item.get('type') == 'tool' and 'mining_speed_boost' in item:
-            # Use the best pickaxe (most negative boost = fastest)
-            if item['mining_speed_boost'] < mining_speed_boost:
-                mining_speed_boost = item['mining_speed_boost']
+    if player.tool and player.tool.get('type') == 'tool' and 'mining_speed_boost' in player.tool:
+        mining_speed_boost = player.tool['mining_speed_boost']
     
-    base_mining_duration = 5
+    base_mining_duration = 8  # Base mining time in seconds
     mining_duration = max(1.0, base_mining_duration + mining_speed_boost)  # Minimum 1 second
     
     def mining_loop():
         nonlocal mining_active, ores_mined, total_value, mine_count, total_xp
         
         while mining_active:
-            # Progress bar for mining
+            # Track start time to ensure accurate total duration
+            start_time = time.time()
             progress_steps = 20
-            step_delay = mining_duration / progress_steps
             
             for i in range(progress_steps):
                 if not mining_active:
@@ -213,7 +215,12 @@ def go_mining(player):
                 print(colorize("=" * 60, Colors.MAGENTA))
                 
                 if not DEV_FLAGS['fast']:
-                    time.sleep(step_delay)
+                    # Calculate elapsed time and adjust sleep to maintain exact duration
+                    elapsed_time = time.time() - start_time
+                    target_time = (i + 1) * (mining_duration / progress_steps)
+                    sleep_time = max(0.0, target_time - elapsed_time)
+                    if sleep_time > 0:
+                        time.sleep(sleep_time)
             
             if not mining_active:
                 break

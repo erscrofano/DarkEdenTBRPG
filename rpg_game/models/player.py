@@ -35,6 +35,7 @@ class Player:
         from ..items.definitions import SWORDS
         self.weapon = SWORDS['g0'].copy()
         self.armor = None
+        self.tool = None  # Equipped tool (fishing rod, pickaxe, etc.)
         # Tracking stats (Kal Online / OSRS inspired)
         self.kill_streak = 0
         self.total_kills = 0
@@ -77,6 +78,7 @@ class Player:
             'inventory': self.inventory,
             'weapon': self.weapon,
             'armor': self.armor,
+            'tool': getattr(self, 'tool', None),
             'kill_streak': getattr(self, 'kill_streak', 0),
             'total_kills': getattr(self, 'total_kills', 0),
             'highest_level_enemy': getattr(self, 'highest_level_enemy', 0),
@@ -128,6 +130,7 @@ class Player:
                 item['quantity'] = 1
         player.weapon = data.get('weapon')  # Use get() with default None if missing
         player.armor = data.get('armor')  # Use get() with default None if missing
+        player.tool = data.get('tool')  # Use get() with default None if missing
         # Ensure new players have starter weapon
         if not player.weapon:
             # Use G0 Training Sword as starter weapon

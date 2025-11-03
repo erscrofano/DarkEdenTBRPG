@@ -182,6 +182,11 @@ def go_fishing(player):
     print(f"\n{colorize(location.description, Colors.WHITE)}")
     print(f"\n{colorize('Fishing will automatically continue. Press Enter to stop.', Colors.YELLOW)}")
     print(f"{colorize('Fishing Level:', Colors.BRIGHT_CYAN)} {colorize(str(player.fishing_level), Colors.BRIGHT_GREEN)}")
+    if player.tool and player.tool.get('type') == 'tool' and 'fishing_speed_boost' in player.tool:
+        boost = abs(player.tool['fishing_speed_boost'])
+        print(f"{colorize('Equipped Tool:', Colors.BRIGHT_CYAN)} {colorize(player.tool['name'], Colors.BRIGHT_GREEN)} {colorize(f'(-{boost}s)', Colors.WHITE)}")
+    else:
+        print(f"{colorize('Equipped Tool:', Colors.BRIGHT_CYAN)} {colorize('None', Colors.YELLOW)} {colorize('(No speed bonus)', Colors.GRAY)}")
     print(colorize("=" * 60, Colors.CYAN))
     input(f"\n{colorize('Press Enter to start fishing...', Colors.BRIGHT_CYAN)}")
     
@@ -191,13 +196,10 @@ def go_fishing(player):
     catch_count = 0
     total_xp = 0
     
-    # Check inventory for fishing rods (use best one if multiple)
+    # Check equipped tool for fishing rod bonus
     fishing_speed_boost = 0
-    for item in player.inventory:
-        if item.get('type') == 'tool' and 'fishing_speed_boost' in item:
-            # Use the best rod (most negative boost = fastest)
-            if item['fishing_speed_boost'] < fishing_speed_boost:
-                fishing_speed_boost = item['fishing_speed_boost']
+    if player.tool and player.tool.get('type') == 'tool' and 'fishing_speed_boost' in player.tool:
+        fishing_speed_boost = player.tool['fishing_speed_boost']
     
     base_fishing_duration = 8
     fishing_duration = max(1.0, base_fishing_duration + fishing_speed_boost)  # Minimum 1 second
@@ -206,9 +208,9 @@ def go_fishing(player):
         nonlocal fishing_active, fish_caught, total_value, catch_count, total_xp
         
         while fishing_active:
-            # Progress bar for fishing
+            # Track start time to ensure accurate total duration
+            start_time = time.time()
             progress_steps = 20
-            step_delay = fishing_duration / progress_steps
             
             for i in range(progress_steps):
                 if not fishing_active:
@@ -236,7 +238,12 @@ def go_fishing(player):
                 print(colorize("=" * 60, Colors.CYAN))
                 
                 if not DEV_FLAGS['fast']:
-                    time.sleep(step_delay)
+                    # Calculate elapsed time and adjust sleep to maintain exact duration
+                    elapsed_time = time.time() - start_time
+                    target_time = (i + 1) * (fishing_duration / progress_steps)
+                    sleep_time = max(0.0, target_time - elapsed_time)
+                    if sleep_time > 0:
+                        time.sleep(sleep_time)
             
             if not fishing_active:
                 break

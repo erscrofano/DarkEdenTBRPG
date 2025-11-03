@@ -46,11 +46,24 @@ def get_save_paths(slot_name=None):
 
 def list_save_slots():
     """List all available save slots"""
-    save_dir = get_save_dir()
+    try:
+        save_dir = get_save_dir()
+    except (OSError, PermissionError) as e:
+        from ..utils.logging import log_error
+        log_error(f"Failed to access save directory: {e}")
+        return []
+    
     slots = []
     
     # Look for all save_*.json files
-    for save_file in save_dir.glob('save_*.json'):
+    try:
+        save_files = list(save_dir.glob('save_*.json'))
+    except (OSError, PermissionError) as e:
+        from ..utils.logging import log_error
+        log_error(f"Failed to list save files: {e}")
+        return []
+    
+    for save_file in save_files:
         # Skip temp and backup files
         if save_file.name.endswith('.tmp') or save_file.name.endswith('.bak'):
             continue
@@ -143,11 +156,17 @@ def save_game(player, slot_name=None):
         # Log the error
         from ..utils.logging import log_error
         log_error(f"Failed to save game: {e}", exc_info=True)
-        # Clean up temp file if it exists
+        # Clean up temp file if it exists (use the slot_name from the try block)
         try:
-            paths = get_save_paths()
-            if paths['temp'].exists():
-                paths['temp'].unlink()
+            # Re-determine slot_name for cleanup (slot_name param always exists, may be None)
+            cleanup_slot = DEFAULT_SAVE_SLOT
+            if hasattr(player, 'save_slot') and player.save_slot:
+                cleanup_slot = player.save_slot
+            elif slot_name is not None:
+                cleanup_slot = slot_name
+            cleanup_paths = get_save_paths(cleanup_slot)
+            if cleanup_paths['temp'].exists():
+                cleanup_paths['temp'].unlink()
         except (OSError, PermissionError) as cleanup_error:
             log_error(f"Failed to clean up temp save file: {cleanup_error}")
         return False

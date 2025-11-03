@@ -1,8 +1,8 @@
 """Developer menu for testing and balancing"""
 from ..ui import Colors, colorize, clear_screen
 from ..constants import (
-    STARTING_LEVEL, MAX_SKILL_LEVEL,
-    EXP_MULTIPLIER_PER_LEVEL, STARTING_EXP_TO_NEXT
+    MAX_SKILL_LEVEL,
+    EXP_MULTIPLIER_PER_LEVEL, STARTING_EXP_TO_NEXT, STAT_POINTS_PER_LEVEL
 )
 
 
@@ -84,6 +84,9 @@ def set_character_level(player):
             return
         
         old_level = player.level
+        level_diff = new_level - old_level
+        
+        # Update level
         player.level = new_level
         
         # Recalculate exp_to_next based on new level
@@ -92,14 +95,21 @@ def set_character_level(player):
         for _ in range(1, new_level):
             player.exp_to_next = int(player.exp_to_next * EXP_MULTIPLIER_PER_LEVEL)
         
-        # Reset exp to 0 when leveling up this way (clean slate)
+        # Reset exp to 0 when setting level directly (clean slate)
         player.exp = 0
+        
+        # If level increased, add stat points for the levels gained
+        if level_diff > 0:
+            player.stat_points += level_diff * STAT_POINTS_PER_LEVEL
         
         # Recalculate max HP based on new level
         player.calculate_max_hp()
         player.hp = player.max_hp
         
         print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Level changed from {old_level} to {new_level}!', Colors.BRIGHT_GREEN)}")
+        if level_diff > 0:
+            stat_points_gained = level_diff * STAT_POINTS_PER_LEVEL
+            print(f"{colorize(f'Gained {stat_points_gained} stat points for {level_diff} level(s).', Colors.WHITE)}")
         print(f"{colorize('XP reset to 0. Max HP updated.', Colors.WHITE)}")
         input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
         

@@ -140,10 +140,24 @@ def view_inventory(player):
         else:
             print(f"{colorize('🛡️ Armor:', Colors.WHITE)} {colorize('None', Colors.WHITE)}")
         
+        if player.tool:
+            tool_name = player.tool['name']
+            tool_desc = ""
+            if 'fishing_speed_boost' in player.tool:
+                boost = abs(player.tool['fishing_speed_boost'])
+                tool_desc = f" (Fishing: -{boost}s)"
+            elif 'mining_speed_boost' in player.tool:
+                boost = abs(player.tool['mining_speed_boost'])
+                tool_desc = f" (Mining: -{boost}s)"
+            print(f"{colorize('🔧 Tool:', Colors.WHITE)} {colorize(tool_name, Colors.BRIGHT_MAGENTA)}{colorize(tool_desc, Colors.WHITE)}")
+        else:
+            print(f"{colorize('🔧 Tool:', Colors.WHITE)} {colorize('None', Colors.WHITE)}")
+        
         # Get equippable items from inventory
         equippable_items = []
         for item in player.inventory:
-            if item.get('type') == 'weapon' or item.get('type') == 'armor':
+            item_type = item.get('type')
+            if item_type == 'weapon' or item_type == 'armor' or item_type == 'tool':
                 equippable_items.append(item)
         
         # Show all inventory items
@@ -183,6 +197,15 @@ def view_inventory(player):
                         display_text += f" {colorize('[CONSUMABLE]', Colors.BRIGHT_YELLOW)} {colorize(heal_text, Colors.BRIGHT_GREEN)}"
                     else:
                         display_text += f" {colorize('[CONSUMABLE]', Colors.BRIGHT_YELLOW)}"
+                elif item_type == 'tool':
+                    tool_desc = ""
+                    if 'fishing_speed_boost' in item:
+                        boost = abs(item['fishing_speed_boost'])
+                        tool_desc = f" (Fishing: -{boost}s)"
+                    elif 'mining_speed_boost' in item:
+                        boost = abs(item['mining_speed_boost'])
+                        tool_desc = f" (Mining: -{boost}s)"
+                    display_text += f" {colorize('[TOOL]', Colors.BRIGHT_MAGENTA)}{colorize(tool_desc, Colors.WHITE)}"
                 elif item_type == 'material':
                     display_text += f" {colorize('[MATERIAL]', Colors.WHITE)}"
                 
@@ -205,7 +228,8 @@ def view_inventory(player):
         
         print(colorize("\n" + "=" * 60, Colors.CYAN))
         print(f"  {colorize('1.', Colors.BRIGHT_GREEN)} Equip Item")
-        print(f"  {colorize('2.', Colors.BRIGHT_BLUE)} Back")
+        print(f"  {colorize('2.', Colors.BRIGHT_YELLOW)} Unequip Item")
+        print(f"  {colorize('3.', Colors.BRIGHT_BLUE)} Back")
         print(colorize("=" * 60, Colors.CYAN))
         
         choice = input(f"\n{colorize('What would you like to do?', Colors.BRIGHT_CYAN)} ").strip()
@@ -235,6 +259,15 @@ def view_inventory(player):
                 elif item_type == 'armor':
                     defense_val = item.get('defense', 0)
                     display_text += f" {colorize('[ARMOR]', Colors.BRIGHT_BLUE)} {colorize(f'(+{defense_val} Defense)', Colors.BRIGHT_YELLOW)}"
+                elif item_type == 'tool':
+                    tool_desc = ""
+                    if 'fishing_speed_boost' in item:
+                        boost = abs(item['fishing_speed_boost'])
+                        tool_desc = f" (Fishing: -{boost}s)"
+                    elif 'mining_speed_boost' in item:
+                        boost = abs(item['mining_speed_boost'])
+                        tool_desc = f" (Mining: -{boost}s)"
+                    display_text += f" {colorize('[TOOL]', Colors.BRIGHT_MAGENTA)}{colorize(tool_desc, Colors.WHITE)}"
                 print(display_text)
             
             print(f"\n  {colorize(str(len(equippable_items) + 1) + '.', Colors.BRIGHT_BLUE)} Back")
@@ -278,6 +311,18 @@ def view_inventory(player):
                         equip_msg = f"Equipped {item_to_equip['name']}!"
                         print(f"{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(equip_msg, Colors.BRIGHT_GREEN)}")
                     
+                    elif item_type == 'tool':
+                        # Handle tool swapping
+                        if player.tool:
+                            old_tool = player.tool.copy()
+                            add_item_to_inventory(player.inventory, old_tool)
+                            unequip_msg = f"Unequipped {old_tool['name']}"
+                            print(f"\n{colorize('🔄', Colors.BRIGHT_BLUE)} {colorize(unequip_msg, Colors.WHITE)}")
+                        
+                        player.tool = item_to_equip.copy()
+                        equip_msg = f"Equipped {item_to_equip['name']}!"
+                        print(f"{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(equip_msg, Colors.BRIGHT_GREEN)}")
+                    
                     input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
                 else:
                     print(f"\n{colorize('❌ Invalid choice!', Colors.BRIGHT_RED)}")
@@ -287,6 +332,93 @@ def view_inventory(player):
                 input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
         
         elif choice == '2':
+            # Unequip menu
+            equipped_items = []
+            if player.weapon:
+                equipped_items.append(('weapon', player.weapon, '⚔️ Weapon'))
+            if player.armor:
+                equipped_items.append(('armor', player.armor, '🛡️ Armor'))
+            if player.tool:
+                equipped_items.append(('tool', player.tool, '🔧 Tool'))
+            
+            if not equipped_items:
+                no_equipped_msg = "You don't have any items equipped!"
+                print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(no_equipped_msg, Colors.WHITE)}")
+                input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+                continue
+            
+            clear_screen()
+            print(colorize("=" * 60, Colors.CYAN))
+            print(colorize("📤  UNEQUIP ITEM  📤", Colors.BRIGHT_YELLOW + Colors.BOLD))
+            print(colorize("=" * 60, Colors.CYAN))
+            print(f"\n{colorize('SELECT AN ITEM TO UNEQUIP:', Colors.BRIGHT_WHITE + Colors.BOLD)}\n")
+            
+            for i, (item_type, item, icon) in enumerate(equipped_items, 1):
+                formatted_name = format_item_name(item)
+                display_text = f"  {colorize(str(i) + '.', Colors.WHITE)} {icon} {formatted_name}"
+                
+                if item_type == 'weapon':
+                    attack_val = item.get('attack', 0)
+                    display_text += f" {colorize(f'(+{attack_val} Attack)', Colors.BRIGHT_YELLOW)}"
+                elif item_type == 'armor':
+                    defense_val = item.get('defense', 0)
+                    display_text += f" {colorize(f'(+{defense_val} Defense)', Colors.BRIGHT_YELLOW)}"
+                elif item_type == 'tool':
+                    tool_desc = ""
+                    if 'fishing_speed_boost' in item:
+                        boost = abs(item['fishing_speed_boost'])
+                        tool_desc = f" (Fishing: -{boost}s)"
+                    elif 'mining_speed_boost' in item:
+                        boost = abs(item['mining_speed_boost'])
+                        tool_desc = f" (Mining: -{boost}s)"
+                    display_text += f"{colorize(tool_desc, Colors.WHITE)}"
+                
+                print(display_text)
+            
+            print(f"\n  {colorize(str(len(equipped_items) + 1) + '.', Colors.BRIGHT_BLUE)} Back")
+            print(colorize("=" * 60, Colors.CYAN))
+            
+            unequip_choice = input(f"\n{colorize('What would you like to unequip?', Colors.BRIGHT_CYAN)} ").strip()
+            
+            try:
+                unequip_num = int(unequip_choice)
+                if unequip_num == len(equipped_items) + 1:
+                    continue
+                
+                if 1 <= unequip_num <= len(equipped_items):
+                    item_type, item, icon = equipped_items[unequip_num - 1]
+                    
+                    # Unequip the item
+                    if item_type == 'weapon':
+                        unequipped_item = player.weapon.copy()
+                        add_item_to_inventory(player.inventory, unequipped_item)
+                        player.weapon = None
+                        unequip_msg = f"Unequipped {unequipped_item['name']}"
+                        print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(unequip_msg, Colors.BRIGHT_GREEN)}")
+                    
+                    elif item_type == 'armor':
+                        unequipped_item = player.armor.copy()
+                        add_item_to_inventory(player.inventory, unequipped_item)
+                        player.armor = None
+                        unequip_msg = f"Unequipped {unequipped_item['name']}"
+                        print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(unequip_msg, Colors.BRIGHT_GREEN)}")
+                    
+                    elif item_type == 'tool':
+                        unequipped_item = player.tool.copy()
+                        add_item_to_inventory(player.inventory, unequipped_item)
+                        player.tool = None
+                        unequip_msg = f"Unequipped {unequipped_item['name']}"
+                        print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(unequip_msg, Colors.BRIGHT_GREEN)}")
+                    
+                    input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+                else:
+                    print(f"\n{colorize('❌ Invalid choice!', Colors.BRIGHT_RED)}")
+                    input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+            except ValueError:
+                print(f"\n{colorize('❌ Invalid choice!', Colors.BRIGHT_RED)}")
+                input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+        
+        elif choice == '3':
             return
         else:
             print(f"\n{colorize('❌ Invalid choice!', Colors.BRIGHT_RED)}")
