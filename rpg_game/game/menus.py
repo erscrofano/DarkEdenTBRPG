@@ -1,5 +1,5 @@
 """Game menus"""
-from ..ui import Colors, colorize, clear_screen
+from ..ui import Colors, colorize, clear_screen, display_time_hud
 from ..models.location import LOCATIONS
 from ..items import get_item_quantity, format_item_name, add_item_to_inventory
 from ..achievements.system import ALL_ACHIEVEMENTS
@@ -13,6 +13,7 @@ def town_menu(player):
 def view_achievements(player):
     """View all achievements (locked and unlocked)"""
     clear_screen()
+    display_time_hud(player)  # Real-time clock display
     print(colorize("=" * 60, Colors.BRIGHT_MAGENTA))
     print(colorize("🏆  ACHIEVEMENTS  🏆", Colors.BRIGHT_MAGENTA + Colors.BOLD))
     print(colorize("=" * 60, Colors.BRIGHT_MAGENTA))
@@ -124,6 +125,7 @@ def view_achievements(player):
 def view_inventory(player):
     while True:
         clear_screen()
+        display_time_hud(player)  # Real-time clock display
         print(colorize("=" * 50, Colors.CYAN))
         print(colorize("🎒 INVENTORY", Colors.BRIGHT_CYAN + Colors.BOLD))
         print(colorize("=" * 50, Colors.CYAN))
@@ -428,6 +430,7 @@ def view_inventory(player):
 def locations_menu(player):
     """Menu for traveling between major locations and dungeons"""
     clear_screen()
+    display_time_hud(player)  # Real-time clock display
     print(colorize("=" * 60, Colors.BRIGHT_CYAN))
     print(colorize("🗺️  TRAVEL  🗺️", Colors.BRIGHT_CYAN + Colors.BOLD))
     print(colorize("=" * 60, Colors.BRIGHT_CYAN))
@@ -470,6 +473,7 @@ def eslania_city_menu(player):
     """Eslania City main menu - merged with Town"""
     clear_screen()
     location = LOCATIONS['eslania_city']
+    display_time_hud(player)  # Real-time clock display
     print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
     print(colorize(f"🏰 {location.name.upper()}", Colors.BRIGHT_YELLOW + Colors.BOLD))
     print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
@@ -521,6 +525,7 @@ def perona_outpost_menu(player):
     """Perona Outpost main menu"""
     clear_screen()
     location = LOCATIONS['perona_outpost']
+    display_time_hud(player)  # Real-time clock display
     print(colorize("=" * 60, Colors.BRIGHT_BLUE))
     print(colorize(f"🏕️ {location.name.upper()}", Colors.BRIGHT_BLUE + Colors.BOLD))
     print(colorize("=" * 60, Colors.BRIGHT_BLUE))

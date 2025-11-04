@@ -236,3 +236,87 @@ def delete_save_slot_menu(slots):
         input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
         return None
 
+
+def rename_save_slot_menu():
+    """Menu to rename an existing save slot"""
+    from ..save.system import list_save_slots, load_game, save_game, delete_save_slot
+    import os
+    
+    clear_screen()
+    print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
+    print(colorize("✏️  RENAME SAVE SLOT  ✏️", Colors.BRIGHT_YELLOW + Colors.BOLD))
+    print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
+    
+    existing_slots = list_save_slots()
+    
+    if not existing_slots:
+        print(f"\n{colorize('No save slots found!', Colors.BRIGHT_RED)}")
+        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+        return
+    
+    print(f"\n{colorize('AVAILABLE SLOTS:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
+    print(colorize("─" * 60, Colors.BRIGHT_YELLOW))
+    
+    for idx, slot_info in enumerate(existing_slots, 1):
+        slot_name = slot_info['slot_name']
+        char_name = slot_info.get('character_name', 'Unknown')
+        level = slot_info.get('level', '?')
+        print(f"  {colorize(f'{idx}.', Colors.WHITE)} {slot_name} ({char_name} - Level {level})")
+    
+    print(colorize("─" * 60, Colors.BRIGHT_YELLOW))
+    print(f"  {colorize(f'{len(existing_slots) + 1}.', Colors.WHITE)} Cancel")
+    
+    try:
+        choice = input(f"\n{colorize('Select slot to rename: ', Colors.BRIGHT_YELLOW)}").strip()
+        choice_num = int(choice)
+        
+        if choice_num == len(existing_slots) + 1:
+            return
+        
+        if 1 <= choice_num <= len(existing_slots):
+            old_slot_name = existing_slots[choice_num - 1]['slot_name']
+            
+            print(f"\n{colorize(f'Renaming slot: {old_slot_name}', Colors.CYAN)}")
+            new_name = input(f"{colorize('Enter new slot name: ', Colors.BRIGHT_YELLOW)}").strip()
+            
+            if not new_name:
+                print(f"\n{colorize('❌ Name cannot be empty!', Colors.BRIGHT_RED)}")
+                input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+                return
+            
+            # Sanitize new name
+            from ..save.system import sanitize_slot_name
+            sanitized = sanitize_slot_name(new_name)
+            
+            if sanitized != new_name:
+                sanitized_msg = f'Name sanitized to: "{sanitized}"'
+                print(f"\n{colorize('⚠️', Colors.YELLOW)} {colorize(sanitized_msg, Colors.WHITE)}")
+            
+            # Check if new name already exists
+            if any(s['slot_name'] == sanitized for s in existing_slots if s['slot_name'] != old_slot_name):
+                exists_msg = f'A save slot named "{sanitized}" already exists!'
+                print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(exists_msg, Colors.WHITE)}")
+                input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+                return
+            
+            # Load the save, update slot name, save to new slot, delete old
+            player = load_game(old_slot_name)
+            if player:
+                player.save_slot = sanitized
+                save_game(player, sanitized)
+                delete_save_slot(old_slot_name)
+                
+                success_msg = f'Slot renamed from "{old_slot_name}" to "{sanitized}"!'
+                print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(success_msg, Colors.BRIGHT_GREEN)}")
+            else:
+                print(f"\n{colorize('❌ Failed to load save slot!', Colors.BRIGHT_RED)}")
+            
+            input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+        else:
+            print(f"\n{colorize('❌ Invalid choice!', Colors.BRIGHT_RED)}")
+            input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+    
+    except ValueError:
+        print(f"\n{colorize('❌ Invalid input!', Colors.BRIGHT_RED)}")
+        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+

@@ -1,6 +1,6 @@
 """Shop menus"""
 import random
-from ..ui import Colors, colorize, clear_screen, health_bar
+from ..ui import Colors, colorize, clear_screen, health_bar, display_time_hud
 from ..items import WEAPONS, SWORDS, BLADES, GUNS, CROSSES, MACES, MAGIC_WEAPONS, ARMOR_SETS, POTIONS, FISHING_RODS, PICKAXES, add_item_to_inventory, remove_item_from_inventory, get_item_quantity, format_item_name
 from ..constants import MAX_QUANTITY_PER_PURCHASE, MIN_QUANTITY_PER_PURCHASE
 
@@ -297,6 +297,7 @@ def knight_guild(player):
     """Knight Guild - sells swords, blades, and armor"""
     while True:
         clear_screen()
+        display_time_hud(player)  # Real-time clock display
         print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
         print(colorize("⚔️  KNIGHT GUILD  ⚔️", Colors.BRIGHT_YELLOW + Colors.BOLD))
         print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
@@ -358,6 +359,7 @@ def army_guild(player):
     """Army Guild - sells guns and armor"""
     while True:
         clear_screen()
+        display_time_hud(player)  # Real-time clock display
         print(colorize("=" * 60, Colors.BRIGHT_RED))
         print(colorize("🔫  ARMY GUILD  🔫", Colors.BRIGHT_RED + Colors.BOLD))
         print(colorize("=" * 60, Colors.BRIGHT_RED))
@@ -408,6 +410,7 @@ def cleric_guild(player):
     """Cleric Guild - sells crosses, maces, and armor"""
     while True:
         clear_screen()
+        display_time_hud(player)  # Real-time clock display
         print(colorize("=" * 60, Colors.BRIGHT_MAGENTA))
         print(colorize("✨  CLERIC GUILD  ✨", Colors.BRIGHT_MAGENTA + Colors.BOLD))
         print(colorize("=" * 60, Colors.BRIGHT_MAGENTA))
@@ -469,6 +472,7 @@ def general_store(player):
     """General Store - buy general items, sell anything for coins"""
     while True:
         clear_screen()
+        display_time_hud(player)  # Real-time clock display
         print(colorize("=" * 60, Colors.BRIGHT_GREEN))
         print(colorize("🏪  GENERAL STORE  🏪", Colors.BRIGHT_GREEN + Colors.BOLD))
         print(colorize("=" * 60, Colors.BRIGHT_GREEN))
@@ -572,6 +576,7 @@ def fishing_store(player):
     """Fishing Store - sells fishing rods"""
     while True:
         clear_screen()
+        display_time_hud(player)  # Real-time clock display
         print(colorize("=" * 60, Colors.BRIGHT_CYAN))
         print(colorize("🎣  FISHING STORE  🎣", Colors.BRIGHT_CYAN + Colors.BOLD))
         print(colorize("=" * 60, Colors.BRIGHT_CYAN))
@@ -645,6 +650,7 @@ def mining_store(player):
     """Mining Store - sells pickaxes"""
     while True:
         clear_screen()
+        display_time_hud(player)  # Real-time clock display
         print(colorize("=" * 60, Colors.BRIGHT_MAGENTA))
         print(colorize("⛏️  MINING STORE  ⛏️", Colors.BRIGHT_MAGENTA + Colors.BOLD))
         print(colorize("=" * 60, Colors.BRIGHT_MAGENTA))

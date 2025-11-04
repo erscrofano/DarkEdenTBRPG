@@ -1,5 +1,7 @@
 """Developer menu for testing and balancing"""
-from ..ui import Colors, colorize, clear_screen
+import time
+import random
+from ..ui import Colors, colorize, clear_screen, display_time_hud
 from ..constants import (
     MAX_SKILL_LEVEL,
     EXP_MULTIPLIER_PER_LEVEL, STARTING_EXP_TO_NEXT, STAT_POINTS_PER_LEVEL,
@@ -12,6 +14,7 @@ def dev_menu(player):
     """Hidden dev menu accessible by typing 1337"""
     while True:
         clear_screen()
+        display_time_hud(player)  # Real-time clock display
         print(colorize("=" * 60, Colors.BRIGHT_MAGENTA))
         print(colorize("🔧  DEVELOPER MENU  🔧", Colors.BRIGHT_MAGENTA + Colors.BOLD))
         print(colorize("=" * 60, Colors.BRIGHT_MAGENTA))
@@ -34,11 +37,16 @@ def dev_menu(player):
         print(f"  {colorize('4.', Colors.WHITE)} Set Fishing Level")
         print(f"  {colorize('5.', Colors.WHITE)} Set Cooking Level")
         print(f"  {colorize('6.', Colors.WHITE)} Set Mining Level")
+        print(f"  {colorize('7.', Colors.WHITE)} Change Character Name")
+        print(f"  {colorize('8.', Colors.WHITE)} Reset World Time")
+        print(f"\n{colorize('SAVE MANAGEMENT:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
+        print(f"  {colorize('9.', Colors.WHITE)} Rename Save Slot")
+        print(f"  {colorize('10.', Colors.WHITE)} Delete Save Slot")
         print(f"\n{colorize('GAME DATA:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
-        print(f"  {colorize('7.', Colors.WHITE)} View All Items")
-        print(f"  {colorize('8.', Colors.WHITE)} View All Monsters")
+        print(f"  {colorize('11.', Colors.WHITE)} View All Items")
+        print(f"  {colorize('12.', Colors.WHITE)} View All Monsters")
         print(f"\n{colorize('NAVIGATION:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
-        print(f"  {colorize('9.', Colors.WHITE)} Back to Game")
+        print(f"  {colorize('13.', Colors.WHITE)} Back to Game")
         print(colorize("=" * 60, Colors.BRIGHT_MAGENTA))
         
         choice = input(f"\n{colorize('Select option:', Colors.BRIGHT_CYAN)} ").strip()
@@ -56,14 +64,137 @@ def dev_menu(player):
         elif choice == '6':
             set_skill_level(player, 'mining')
         elif choice == '7':
-            view_all_items()
+            change_character_name(player)
         elif choice == '8':
-            view_all_monsters()
+            reset_world_time(player)
         elif choice == '9':
+            rename_save_slot_wrapper()
+        elif choice == '10':
+            delete_save_slot_wrapper()
+        elif choice == '11':
+            view_all_items()
+        elif choice == '12':
+            view_all_monsters()
+        elif choice == '13':
             break
         else:
             print(f"\n{colorize('❌ Invalid choice!', Colors.BRIGHT_RED)}")
             input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+
+
+def change_character_name(player):
+    """Change the character's name"""
+    clear_screen()
+    print(colorize("=" * 60, Colors.BRIGHT_CYAN))
+    print(colorize("✏️  CHANGE CHARACTER NAME  ✏️", Colors.BRIGHT_CYAN + Colors.BOLD))
+    print(colorize("=" * 60, Colors.BRIGHT_CYAN))
+    
+    print(f"\n{colorize('CURRENT NAME:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
+    print(f"  {player.name}")
+    
+    new_name = input(f"\n{colorize('Enter new name (or leave blank to cancel): ', Colors.BRIGHT_CYAN)}").strip()
+    
+    if not new_name:
+        print(f"\n{colorize('❌ Cancelled', Colors.BRIGHT_RED)}")
+        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+        return
+    
+    # Validate name
+    if len(new_name) > 20:
+        print(f"\n{colorize('❌ Name too long! Maximum 20 characters.', Colors.BRIGHT_RED)}")
+        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+        return
+    
+    if len(new_name) < 2:
+        print(f"\n{colorize('❌ Name too short! Minimum 2 characters.', Colors.BRIGHT_RED)}")
+        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+        return
+    
+    old_name = player.name
+    player.name = new_name
+    
+    print(f"\n{colorize('✅ Name changed!', Colors.BRIGHT_GREEN)}")
+    print(f"  {colorize('Old name:', Colors.CYAN)} {old_name}")
+    print(f"  {colorize('New name:', Colors.CYAN)} {new_name}")
+    
+    input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+
+
+def reset_world_time(player):
+    """Reset the world time anchor for this character"""
+    clear_screen()
+    print(colorize("=" * 60, Colors.BRIGHT_CYAN))
+    print(colorize("🕐  RESET WORLD TIME  🕐", Colors.BRIGHT_CYAN + Colors.BOLD))
+    print(colorize("=" * 60, Colors.BRIGHT_CYAN))
+    
+    from ..systems.time_system import GameClock
+    current_clock = GameClock(player.world_anchor_timestamp)
+    current_time = current_clock.get_current_time()
+    
+    print(f"\n{colorize('CURRENT TIME:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
+    print(f"  Day {current_time['day']}, {current_time['hour']:02d}:{current_time['minute']:02d} [{current_time['phase']}]")
+    
+    print(f"\n{colorize('RESET OPTIONS:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
+    print(f"  {colorize('1.', Colors.WHITE)} Reset to Day 1, 00:00 (Morning)")
+    print(f"  {colorize('2.', Colors.WHITE)} Reset to Day 1, 06:00 (Dawn)")
+    print(f"  {colorize('3.', Colors.WHITE)} Reset to Day 1, 12:00 (Noon)")
+    print(f"  {colorize('4.', Colors.WHITE)} Reset to Day 1, 18:00 (Dusk/Night)")
+    print(f"  {colorize('5.', Colors.WHITE)} Reset to Day 1, 21:00 (Night)")
+    print(f"  {colorize('6.', Colors.WHITE)} Random time")
+    print(f"  {colorize('7.', Colors.WHITE)} Cancel")
+    
+    choice = input(f"\n{colorize('Choose option: ', Colors.BRIGHT_CYAN)}").strip()
+    
+    # Calculate offset based on choice
+    # 1 real hour = 1 in-game day = 3600 seconds
+    # 1 in-game hour = 150 real seconds
+    offset = 0
+    
+    if choice == '1':
+        # Day 1, 00:00 - no offset
+        offset = 0
+        desc = "Day 1, 00:00 (Morning)"
+    elif choice == '2':
+        # Day 1, 06:00 - 6 in-game hours = 900 real seconds
+        offset = 6 * 150
+        desc = "Day 1, 06:00 (Dawn)"
+    elif choice == '3':
+        # Day 1, 12:00 - 12 in-game hours = 1800 real seconds
+        offset = 12 * 150
+        desc = "Day 1, 12:00 (Noon)"
+    elif choice == '4':
+        # Day 1, 18:00 - 18 in-game hours = 2700 real seconds (start of night)
+        offset = 18 * 150
+        desc = "Day 1, 18:00 (Dusk/Night)"
+    elif choice == '5':
+        # Day 1, 21:00 - 21 in-game hours = 3150 real seconds
+        offset = 21 * 150
+        desc = "Day 1, 21:00 (Night)"
+    elif choice == '6':
+        # Random time within first day
+        offset = random.randint(0, 3600)
+        desc = "Random time"
+    elif choice == '7':
+        print(f"\n{colorize('❌ Cancelled', Colors.BRIGHT_RED)}")
+        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+        return
+    else:
+        print(f"\n{colorize('❌ Invalid choice!', Colors.BRIGHT_RED)}")
+        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+        return
+    
+    # Set new anchor (current time minus offset to simulate that much time has passed)
+    player.world_anchor_timestamp = time.time() - offset
+    
+    # Verify the new time
+    new_clock = GameClock(player.world_anchor_timestamp)
+    new_time = new_clock.get_current_time()
+    
+    print(f"\n{colorize('✅ World time reset!', Colors.BRIGHT_GREEN)}")
+    print(f"  {colorize('New time:', Colors.CYAN)} Day {new_time['day']}, {new_time['hour']:02d}:{new_time['minute']:02d} [{new_time['phase']}]")
+    print(f"  {colorize('Description:', Colors.CYAN)} {desc}")
+    
+    input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
 
 
 def set_character_level(player):
@@ -264,4 +395,28 @@ def set_skill_level(player, skill_name):
     except ValueError:
         print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize('Invalid input! Please enter a number.', Colors.WHITE)}")
         input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+
+
+def rename_save_slot_wrapper():
+    """Wrapper to call rename_save_slot_menu from save_slots"""
+    from .save_slots import rename_save_slot_menu
+    rename_save_slot_menu()
+
+
+def delete_save_slot_wrapper():
+    """Wrapper to call delete_save_slot_menu from save_slots"""
+    from ..save.system import list_save_slots
+    from .save_slots import delete_save_slot_menu
+    
+    slots = list_save_slots()
+    if not slots:
+        clear_screen()
+        print(colorize("=" * 60, Colors.BRIGHT_RED))
+        print(colorize("🗑️  DELETE SAVE SLOT  🗑️", Colors.BRIGHT_RED + Colors.BOLD))
+        print(colorize("=" * 60, Colors.BRIGHT_RED))
+        print(f"\n{colorize('❌ No save slots found!', Colors.BRIGHT_RED)}")
+        input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+        return
+    
+    delete_save_slot_menu(slots)
 

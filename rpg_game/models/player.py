@@ -57,6 +57,12 @@ class Player:
         # Save slot tracking
         from ..constants import DEFAULT_SAVE_SLOT
         self.save_slot = DEFAULT_SAVE_SLOT
+        # World time anchor - marks "day 1, hour 0" for this world (Unix timestamp)
+        # Randomize starting time so each character feels unique (0-23 hours offset)
+        import time
+        import random
+        random_offset = random.randint(0, 3600)  # 0-60 minutes random offset
+        self.world_anchor_timestamp = time.time() - random_offset
         
     def to_dict(self):
         """Convert player to dictionary for saving"""
@@ -95,12 +101,14 @@ class Player:
             'mining_exp': getattr(self, 'mining_exp', 0),
             'mining_exp_to_next': getattr(self, 'mining_exp_to_next', 100),
             'current_location': getattr(self, 'current_location', 'eslania_city'),
-            'save_slot': getattr(self, 'save_slot', DEFAULT_SAVE_SLOT)
+            'save_slot': getattr(self, 'save_slot', DEFAULT_SAVE_SLOT),
+            'world_anchor_timestamp': getattr(self, 'world_anchor_timestamp', 0)
         }
     
     @classmethod
     def from_dict(cls, data):
         """Create player from dictionary"""
+        import time  # For world_anchor_timestamp default
         from ..save.system import save_game  # Import here to avoid circular dependency
         
         # Ensure name is loaded correctly - use 'name' field, fallback to 'Hero' if missing
@@ -183,6 +191,9 @@ class Player:
         # Load save slot (default to 'main' for backwards compatibility)
         from ..constants import DEFAULT_SAVE_SLOT
         player.save_slot = data.get('save_slot', DEFAULT_SAVE_SLOT)
+        
+        # Load world time anchor (or create new for old saves)
+        player.world_anchor_timestamp = data.get('world_anchor_timestamp', time.time())
         
         return player
         
