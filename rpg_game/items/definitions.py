@@ -216,7 +216,19 @@ DROP_ITEMS = {
     'tepes_core': {'name': 'Tepes Core', 'type': 'material', 'sell_value': 150, 'description': 'Core essence from a Tepes Lair floor'},
     'lair_essence': {'name': 'Lair Essence', 'type': 'material', 'sell_value': 200, 'description': 'Concentrated darkness from Tepes Lair'},
     
-    # Talismans - rare upgrade items
+    # ========================================================================
+    # HEALING AMPULS - Common drops from all enemies
+    # ========================================================================
+    'mini_healing_ampul': {'name': 'Mini Healing Ampul', 'type': 'consumable', 'heal': 40, 'sell_value': 8, 'description': 'Restores 40 HP'},
+    'light_healing_ampul': {'name': 'Light Healing Ampul', 'type': 'consumable', 'heal': 80, 'sell_value': 16, 'description': 'Restores 80 HP'},
+    'half_healing_ampul': {'name': 'Half Healing Ampul', 'type': 'consumable', 'heal': 120, 'sell_value': 32, 'description': 'Restores 120 HP'},
+    'large_healing_ampul': {'name': 'Large Healing Ampul', 'type': 'consumable', 'heal': 200, 'sell_value': 64, 'description': 'Restores 200 HP'},
+    'full_healing_ampul': {'name': 'Full Healing Ampul', 'type': 'consumable', 'heal': 300, 'sell_value': 128, 'description': 'Restores 300 HP'},
+    'healing_bottle': {'name': 'Healing Bottle', 'type': 'consumable', 'heal': 400, 'sell_value': 256, 'description': 'Restores 400 HP'},
+    
+    # ========================================================================
+    # TALISMANS - Rare upgrade items
+    # ========================================================================
     'talisman_strength': {'name': 'Talisman of Strength', 'type': 'talisman', 'sell_value': 500, 'description': 'Adds +5 STR to weapons', 'bonus_str': 5, 'item_type': 'weapon'},
     'talisman_accuracy': {'name': 'Talisman of Accuracy', 'type': 'talisman', 'sell_value': 500, 'description': 'Adds +5 DEX to weapons', 'bonus_dex': 5, 'item_type': 'weapon'},
     'talisman_intensification': {'name': 'Talisman of Intensification', 'type': 'talisman', 'sell_value': 1000, 'description': 'Adds +5 STR and +5 DEX to weapons', 'bonus_str': 5, 'bonus_dex': 5, 'item_type': 'weapon'},

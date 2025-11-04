@@ -55,9 +55,19 @@ class GameManager:
                     self.handle_quitting()
                     break
                     
-            except Exception as e:
+            except (KeyboardInterrupt, SystemExit):
+                # Let system exceptions propagate
+                raise
+            except (ValueError, TypeError, AttributeError, KeyError) as e:
+                # Handle specific expected exceptions
                 log_error(f"Error in game state {self.state}: {e}", exc_info=True)
                 print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize('An error occurred. Returning to main menu...', Colors.WHITE)}")
+                input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+                self.transition_to(GameState.MAIN_MENU)
+            except Exception as e:
+                # Catch-all for unexpected errors, but log them properly
+                log_error(f"Unexpected error in game state {self.state}: {e}", exc_info=True)
+                print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize('An unexpected error occurred. Returning to main menu...', Colors.WHITE)}")
                 input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
                 self.transition_to(GameState.MAIN_MENU)
         
@@ -219,232 +229,43 @@ class GameManager:
     
     def _handle_eslania_city(self) -> bool:
         """Handle Eslania City menu and actions. Returns False to end game loop."""
-        from ..game import (
-            eslania_city_menu, knight_guild, army_guild, cleric_guild,
-            general_store, fishing_store, mining_store, hospital, pimping_service,
-            view_inventory, view_achievements, allocate_stats, locations_menu
-        )
-        from ..game.dev_menu import dev_menu
-        from ..skills import go_fishing, go_mining, cook_fish, training_simulator
-        from ..game.exploration import explore_location, explore_multi_floor_dungeon
-        from ..game.travel import handle_travel
+        from ..game import eslania_city_menu
+        from ..services.actions import LocationHandlerService
         
         choice = eslania_city_menu(self.player)
         
-        # Hidden dev menu
-        if choice == '1337':
-            dev_menu(self.player)
-            return True
+        # Use service layer to handle choice
+        handler_service = LocationHandlerService(self.player)
+        should_continue, new_location = handler_service.handle_eslania_city_choice(choice)
         
-        # Shops and services
-        if choice == '1':
-            knight_guild(self.player)
-        elif choice == '2':
-            army_guild(self.player)
-        elif choice == '3':
-            cleric_guild(self.player)
-        elif choice == '4':
-            general_store(self.player)
-        elif choice == '5':
-            fishing_store(self.player)
-        elif choice == '6':
-            mining_store(self.player)
-        elif choice == '7':
-            hospital(self.player)
-        elif choice == '8':
-            pimping_service(self.player)
-        elif choice == '9':
-            training_simulator(self.player)
-        elif choice == '10':
-            cook_fish(self.player)
-            
-        # Exploration
-        elif choice == '11':
-            result = explore_location(self.player, 'underground_waterways')
-            if result == 'game_over':
+        # Update location if changed
+        if new_location:
+            if new_location == 'game_over':
                 return False
-            elif result == 'previous':
-                self.current_location = 'eslania_city'
-            else:
-                self.current_location = result
-                
-        elif choice == '12':
-            floors = {'b1': {'level': 5, 'multiplier': 1.0}, 'b2': {'level': 10, 'multiplier': 1.2}, 'b3': {'level': 15, 'multiplier': 1.4}}
-            result = explore_multi_floor_dungeon(self.player, 'eslania_dungeon', floors, 'b1')
-            if result == 'previous':
-                self.current_location = 'eslania_city'
-                
-        # Skills
-        elif choice == '13':
-            go_fishing(self.player)
-        elif choice == '14':
-            go_mining(self.player)
-            
-        # Travel
-        elif choice == '15':
-            travel_choice = locations_menu(self.player)
-            if travel_choice and travel_choice != '7':
-                new_location, success = handle_travel(self.player, travel_choice, self.current_location)
-                if success:
-                    if new_location == 'game_over':
-                        return False
-                    else:
-                        self.current_location = new_location
-                        self.player.current_location = new_location
-                        
-        # Player info
-        elif choice == '16':
-            clear_screen()
-            print(self.player.get_stats())
-            if self.player.stat_points > 0:
-                print(f"\n{colorize('💡 You have banked stat points available!', Colors.BRIGHT_YELLOW + Colors.BOLD)}")
-                allocate_choice = input(f"\n{colorize('Would you like to allocate stat points? (y/n): ', Colors.BRIGHT_CYAN)}").strip().lower()
-                if allocate_choice == 'y':
-                    allocate_stats(self.player)
-            input("\nPress Enter to continue...")
-        elif choice == '17':
-            view_inventory(self.player)
-        elif choice == '18':
-            view_achievements(self.player)
-            
-        # Stat allocation or save
-        elif choice == '19':
-            if self.player.stat_points > 0:
-                allocate_stats(self.player)
-            else:
-                if save_game(self.player):
-                    print("\n✅ Game saved successfully!")
-                else:
-                    print("\n❌ Failed to save game!")
-                input("\nPress Enter to continue...")
-                
-        # Save game
-        elif choice == '20':
-            if self.player.stat_points > 0:
-                if save_game(self.player):
-                    print("\n✅ Game saved successfully!")
-                else:
-                    print("\n❌ Failed to save game!")
-                input("\nPress Enter to continue...")
-            else:
-                save_choice = input("\n💾 Save before quitting? (y/n): ").strip().lower()
-                if save_choice == 'y':
-                    if save_game(self.player):
-                        print("\n✅ Game saved successfully!")
-                    else:
-                        print("\n❌ Failed to save game!")
-                    input("\nPress Enter to continue...")
-                print("\n👋 Thanks for playing!")
-                return False
-                
-        # Quit game
-        elif choice == '21':
-            if self.player.stat_points > 0:
-                save_choice = input("\n💾 Save before quitting? (y/n): ").strip().lower()
-                if save_choice == 'y':
-                    if save_game(self.player):
-                        print("\n✅ Game saved successfully!")
-                    else:
-                        print("\n❌ Failed to save game!")
-                    input("\nPress Enter to continue...")
-                print("\n👋 Thanks for playing!")
-                return False
-        else:
-            print("\n❌ Invalid choice!")
-            input("\nPress Enter to continue...")
+            self.current_location = new_location
+            self.player.current_location = new_location
         
-        return True
+        return should_continue
     
     def _handle_perona_outpost(self) -> bool:
         """Handle Perona Outpost menu and actions. Returns False to end game loop."""
-        from ..game import perona_outpost_menu, view_inventory, view_achievements, allocate_stats, locations_menu
-        from ..game.dev_menu import dev_menu
-        from ..game.exploration import explore_multi_floor_dungeon
-        from ..game.travel import handle_travel
+        from ..game import perona_outpost_menu
+        from ..services.actions import LocationHandlerService
         
         choice = perona_outpost_menu(self.player)
         
-        # Hidden dev menu
-        if choice == '1337':
-            dev_menu(self.player)
-            return True
+        # Use service layer to handle choice
+        handler_service = LocationHandlerService(self.player)
+        should_continue, new_location = handler_service.handle_perona_outpost_choice(choice)
         
-        # Exploration
-        if choice == '1':
-            floors = {'b1': {'level': 8, 'multiplier': 1.0}, 'b2': {'level': 12, 'multiplier': 1.3}, 'b3': {'level': 18, 'multiplier': 1.6}}
-            result = explore_multi_floor_dungeon(self.player, 'asylion_dungeon', floors, 'b1')
-            if result == 'previous':
-                self.current_location = 'perona_outpost'
-                
-        # Travel
-        elif choice == '2':
-            travel_choice = locations_menu(self.player)
-            if travel_choice and travel_choice != '7':
-                new_location, success = handle_travel(self.player, travel_choice, self.current_location)
-                if success:
-                    if new_location == 'game_over':
-                        return False
-                    else:
-                        self.current_location = new_location
-                        self.player.current_location = new_location
-                        
-        # Player info
-        elif choice == '3':
-            clear_screen()
-            print(self.player.get_stats())
-            input("\nPress Enter to continue...")
-        elif choice == '4':
-            view_inventory(self.player)
-        elif choice == '5':
-            view_achievements(self.player)
-            
-        # Stats or save
-        elif choice == '6':
-            if self.player.stat_points > 0:
-                allocate_stats(self.player)
-            else:
-                if save_game(self.player):
-                    print("\n✅ Game saved successfully!")
-                else:
-                    print("\n❌ Failed to save game!")
-                input("\nPress Enter to continue...")
-                
-        # Save game
-        elif choice == '7':
-            if self.player.stat_points > 0:
-                if save_game(self.player):
-                    print("\n✅ Game saved successfully!")
-                else:
-                    print("\n❌ Failed to save game!")
-                input("\nPress Enter to continue...")
-            else:
-                save_choice = input("\n💾 Save before quitting? (y/n): ").strip().lower()
-                if save_choice == 'y':
-                    if save_game(self.player):
-                        print("\n✅ Game saved successfully!")
-                    else:
-                        print("\n❌ Failed to save game!")
-                    input("\nPress Enter to continue...")
-                print("\n👋 Thanks for playing!")
+        # Update location if changed
+        if new_location:
+            if new_location == 'game_over':
                 return False
-                
-        # Quit game
-        elif choice == '8':
-            if self.player.stat_points > 0:
-                save_choice = input("\n💾 Save before quitting? (y/n): ").strip().lower()
-                if save_choice == 'y':
-                    if save_game(self.player):
-                        print("\n✅ Game saved successfully!")
-                    else:
-                        print("\n❌ Failed to save game!")
-                    input("\nPress Enter to continue...")
-                print("\n👋 Thanks for playing!")
-                return False
-        else:
-            print("\n❌ Invalid choice!")
-            input("\nPress Enter to continue...")
+            self.current_location = new_location
+            self.player.current_location = new_location
         
-        return True
+        return should_continue
     
     def handle_game_over(self):
         """Handle game over state - return to main menu"""

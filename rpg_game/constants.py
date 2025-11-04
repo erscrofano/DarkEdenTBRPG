@@ -45,8 +45,8 @@ ENEMY_ATTACK_MIN_VARIANCE = -3  # Enemy attack can vary by -3
 ENEMY_ATTACK_MAX_VARIANCE = 5   # Enemy attack can vary by +5
 
 # Enemy scaling
-ENEMY_SCALE_BASE = 1.0
-ENEMY_SCALE_MULTIPLIER = 1.2
+ENEMY_SCALE_BASE = 0.9
+ENEMY_SCALE_MULTIPLIER = 1.0
 ENEMY_SCALE_DECAY = 0.85
 
 # Damage calculations

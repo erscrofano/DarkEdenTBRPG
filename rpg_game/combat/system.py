@@ -210,7 +210,15 @@ def combat(player, enemy):
                         adjusted_drop_chance = min(1.0, drop['chance'] * drop_multiplier)
                         
                         if random.random() < adjusted_drop_chance:
-                            drop_item = DROP_ITEMS[drop['item']].copy()
+                            item_id = drop['item']
+                            # Safety check: ensure item exists in DROP_ITEMS
+                            if item_id not in DROP_ITEMS:
+                                # Log error but don't crash - skip this drop
+                                import sys
+                                print(f"\nWARNING: Missing item definition '{item_id}' - skipping drop", file=sys.stderr)
+                                continue
+                            
+                            drop_item = DROP_ITEMS[item_id].copy()
                             add_item_to_inventory(player.inventory, drop_item)
                             drops_received.append(drop_item)
                             

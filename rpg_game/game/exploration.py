@@ -24,9 +24,9 @@ def explore_location(player, location_name):
     location_multiplier = LOCATION_MULTIPLIER_DEFAULT
     
     if location_name == 'underground_waterways':
-        # Tiers 2-4 enemies, medium-hard difficulty
-        enemy_pool = [e for e in BASE_ENEMIES if 2 <= e['tier'] <= 4]
-        location_multiplier = LOCATION_MULTIPLIER_UNDERGROUND
+        # Tier 1 enemies only - beginner area for level 1-5 players
+        enemy_pool = [e for e in BASE_ENEMIES if e['tier'] == 1]
+        location_multiplier = 0.8  # Easier than base for new players
     else:
         # Unknown location - shouldn't happen, but provide fallback
         enemy_pool = BASE_ENEMIES
@@ -177,9 +177,9 @@ def explore_tepes_lair(player):
             else:
                 enemy_pool = BASE_ENEMIES  # All tiers including end game
             
-            # Lair enemies scale more aggressively
+            # Lair enemies scale much more aggressively - Tepes is a significant challenge
             enemy_template = random.choice(enemy_pool).copy()
-            lair_multiplier = 1.0 + (lair_level * 0.1)  # Each floor adds 10% difficulty
+            lair_multiplier = 2.0 + (lair_level * 0.15)  # Base 2x difficulty, +15% per floor
             enemy_data = scale_enemy(enemy_template, difficulty_level, lair_multiplier, player)
             
             # Lair rewards scale with floor level
@@ -414,22 +414,22 @@ def explore_multi_floor_dungeon(player, dungeon_name, floors, start_floor='b1'):
             difficulty_level = floor_data['level']
             location_multiplier = floor_data['multiplier']
             
-            # Choose enemy tier based on dungeon and floor level
+            # Choose enemy tier based on dungeon and floor level (rebalanced)
             # Limbo Dungeon: Tier 1 (beginner dungeon, levels 1-5)
             if dungeon_name == 'limbo_dungeon':
                 enemy_pool = [e for e in BASE_ENEMIES if e['tier'] == 1]
-            # Rhaom Dungeon: Tiers 1-2 (levels 3-10)
-            elif dungeon_name == 'rhaom_dungeon':
+            # Eslania Dungeon: Tiers 1-2 (levels 4-10)
+            elif dungeon_name == 'eslania_dungeon':
                 enemy_pool = [e for e in BASE_ENEMIES if e['tier'] <= 2]
-            # Lost Taiyan: Tiers 2-3 (levels 8-16)
+            # Rhaom Dungeon: Tiers 2 (levels 7-13)
+            elif dungeon_name == 'rhaom_dungeon':
+                enemy_pool = [e for e in BASE_ENEMIES if e['tier'] == 2]
+            # Lost Taiyan: Tiers 2-3 (levels 10-20)
             elif dungeon_name == 'lost_taiyan':
                 enemy_pool = [e for e in BASE_ENEMIES if 2 <= e['tier'] <= 3]
-            # Eslania Dungeon: Tiers 2-3 (levels 5-15)
-            elif dungeon_name == 'eslania_dungeon':
-                enemy_pool = [e for e in BASE_ENEMIES if 2 <= e['tier'] <= 3]
-            # Asylion Dungeon: Tiers 3-4 (levels 8-18)
+            # Asylion Dungeon: Tiers 4-5 (levels 25-50, almost impossible)
             elif dungeon_name == 'asylion_dungeon':
-                enemy_pool = [e for e in BASE_ENEMIES if 3 <= e['tier'] <= 4]
+                enemy_pool = [e for e in BASE_ENEMIES if 4 <= e['tier'] <= 5]
             # Fallback: Use floor level to determine tier range
             else:
                 if floor_data['level'] <= 5:

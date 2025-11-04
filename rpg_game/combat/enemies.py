@@ -18,47 +18,46 @@ def get_all_talisman_drops():
     return drops
 
 BASE_ENEMIES = [
-    # Tier 1 - Beginner (Level 1)
-    # HP kept as provided, attack/defense balanced for level 1 players
-    # Expected: 3-5 hits to kill, enemy deals 3-8 damage per hit
-    {'name': 'Turning Dead', 'base_hp': 30, 'base_attack': 10, 'base_defense': 1, 'base_exp': 20, 'base_gold': 15, 'tier': 1, 'drops': [
+    # Tier 1 - Beginner (Level 1-3) - Rebalanced for Underground Waterways
+    # Target: Level 1 kills in 3-5 hits, enemy deals 2-4 damage per hit
+    {'name': 'Turning Dead', 'base_hp': 20, 'base_attack': 6, 'base_defense': 1, 'base_exp': 20, 'base_gold': 15, 'tier': 1, 'drops': [
         {'item': 'head_turning_dead', 'chance': 1.0},  # Guaranteed
         {'item': 'bone', 'chance': 0.7},
         {'item': 'soul_fragment', 'chance': 0.3}
     ]},
-    {'name': 'Turning Soul', 'base_hp': 40, 'base_attack': 12, 'base_defense': 1, 'base_exp': 25, 'base_gold': 18, 'tier': 1, 'drops': [
+    {'name': 'Turning Soul', 'base_hp': 25, 'base_attack': 7, 'base_defense': 1, 'base_exp': 25, 'base_gold': 18, 'tier': 1, 'drops': [
         {'item': 'head_turning_soul', 'chance': 1.0},  # Guaranteed
         {'item': 'cursed_bone', 'chance': 0.5},
         {'item': 'shadow_essence', 'chance': 0.3}
     ]},
-    {'name': 'Kid', 'base_hp': 60, 'base_attack': 14, 'base_defense': 2, 'base_exp': 30, 'base_gold': 22, 'tier': 1, 'drops': [
+    {'name': 'Kid', 'base_hp': 30, 'base_attack': 8, 'base_defense': 2, 'base_exp': 30, 'base_gold': 22, 'tier': 1, 'drops': [
         {'item': 'head_kid', 'chance': 1.0},  # Guaranteed
         {'item': 'bandit_coin', 'chance': 0.3},
         {'item': 'iron_ore', 'chance': 0.35}
     ]},
     
-    # Tier 2 - Early Game (Level 5-15)
-    # HP kept as provided, balanced for level 5-10 players
-    {'name': 'Soldier', 'base_hp': 82, 'base_attack': 18, 'base_defense': 3, 'base_exp': 50, 'base_gold': 35, 'tier': 2, 'drops': [
+    # Tier 2 - Early Game (Level 5-10) - Rebalanced
+    # Target: Level 5 kills in 4-6 hits, manageable for mid-level players
+    {'name': 'Soldier', 'base_hp': 50, 'base_attack': 12, 'base_defense': 3, 'base_exp': 50, 'base_gold': 35, 'tier': 2, 'drops': [
         {'item': 'head_soldier', 'chance': 1.0},  # Guaranteed
         {'item': 'bandit_mask', 'chance': 0.6},
         {'item': 'soldier_emblem', 'chance': 0.5},
         {'item': 'iron_ore', 'chance': 0.4}
     ]},
-    {'name': 'Captain', 'base_hp': 105, 'base_attack': 20, 'base_defense': 4, 'base_exp': 65, 'base_gold': 50, 'tier': 2, 'drops': [
+    {'name': 'Captain', 'base_hp': 60, 'base_attack': 14, 'base_defense': 4, 'base_exp': 65, 'base_gold': 50, 'tier': 2, 'drops': [
         {'item': 'head_captain', 'chance': 1.0},  # Guaranteed
         {'item': 'soldier_emblem', 'chance': 0.7},
         {'item': 'bandit_coin', 'chance': 0.5},
         {'item': 'silver_ore', 'chance': 0.4},
         {'item': 'crystal_shard', 'chance': 0.25}
     ]},
-    {'name': 'Arkhan', 'base_hp': 86, 'base_attack': 19, 'base_defense': 3, 'base_exp': 55, 'base_gold': 40, 'tier': 2, 'drops': [
+    {'name': 'Arkhan', 'base_hp': 55, 'base_attack': 13, 'base_defense': 3, 'base_exp': 55, 'base_gold': 40, 'tier': 2, 'drops': [
         {'item': 'head_arkhan', 'chance': 1.0},  # Guaranteed
         {'item': 'cursed_bone', 'chance': 0.6},
         {'item': 'shadow_essence', 'chance': 0.4},
         {'item': 'soul_fragment', 'chance': 0.35}
     ]},
-    {'name': 'Iron Teeth', 'base_hp': 129, 'base_attack': 22, 'base_defense': 5, 'base_exp': 75, 'base_gold': 60, 'tier': 2, 'drops': [
+    {'name': 'Iron Teeth', 'base_hp': 70, 'base_attack': 15, 'base_defense': 5, 'base_exp': 75, 'base_gold': 60, 'tier': 2, 'drops': [
         {'item': 'head_iron_teeth', 'chance': 1.0},  # Guaranteed
         {'item': 'orc_tusk', 'chance': 0.7},
         {'item': 'iron_ore', 'chance': 0.6},

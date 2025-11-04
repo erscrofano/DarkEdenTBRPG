@@ -26,15 +26,15 @@ def handle_travel(player, travel_choice: str, current_location: str) -> tuple[st
         return _travel_to_city(player, current_location, 'perona_outpost', 'Perona Outpost')
     
     elif travel_choice == '3':  # Limbo Dungeon
-        floors = {'b1': {'level': 1, 'multiplier': 0.9}, 'b2': {'level': 3, 'multiplier': 0.95}, 'b3': {'level': 5, 'multiplier': 1.0}}
+        floors = {'b1': {'level': 1, 'multiplier': 0.7}, 'b2': {'level': 3, 'multiplier': 0.8}, 'b3': {'level': 5, 'multiplier': 0.9}}
         return _travel_to_dungeon(player, current_location, travel_cost, 'limbo_dungeon', 'Limbo Dungeon', floors)
     
     elif travel_choice == '4':  # Lost Taiyan
-        floors = {'b1': {'level': 8, 'multiplier': 1.2}, 'b2': {'level': 12, 'multiplier': 1.3}, 'b3': {'level': 16, 'multiplier': 1.4}}
+        floors = {'b1': {'level': 10, 'multiplier': 1.2}, 'b2': {'level': 15, 'multiplier': 1.3}, 'b3': {'level': 20, 'multiplier': 1.4}}
         return _travel_to_dungeon(player, current_location, travel_cost, 'lost_taiyan', 'Lost Taiyan', floors)
     
     elif travel_choice == '5':  # Rhaom Dungeon
-        floors = {'b1': {'level': 3, 'multiplier': 1.0}, 'b2': {'level': 6, 'multiplier': 1.1}, 'b3': {'level': 10, 'multiplier': 1.2}}
+        floors = {'b1': {'level': 7, 'multiplier': 1.0}, 'b2': {'level': 10, 'multiplier': 1.1}, 'b3': {'level': 13, 'multiplier': 1.2}}
         return _travel_to_dungeon(player, current_location, travel_cost, 'rhaom_dungeon', 'Rhaom Dungeon', floors)
     
     elif travel_choice == '6':  # Tepes lair

@@ -16,31 +16,95 @@ def get_save_dir():
 
 
 def sanitize_slot_name(slot_name):
-    """Sanitize save slot name to be filesystem-safe"""
-    # Remove invalid characters for file names
-    sanitized = re.sub(r'[<>:"/\\|?*]', '', slot_name)
-    # Remove leading/trailing spaces and dots
-    sanitized = sanitized.strip('. ')
+    """
+    Sanitize save slot name to be filesystem-safe.
+    Prevents path traversal attacks by:
+    1. Removing all path separators and special characters
+    2. Normalizing using pathlib to prevent directory traversal
+    3. Validating the result is within save directory
+    """
+    if not isinstance(slot_name, str):
+        return DEFAULT_SAVE_SLOT
+    
+    # Remove invalid characters for file names (including Unicode control chars)
+    sanitized = re.sub(r'[<>:"/\\|?*\x00-\x1f\x7f-\x9f]', '', slot_name)
+    # Remove leading/trailing spaces, dots, and dashes (Windows reserved names)
+    sanitized = sanitized.strip('. -')
+    # Remove any remaining path components (prevent .. sequences)
+    sanitized = re.sub(r'\.{2,}', '', sanitized)  # Remove .. sequences
     # Limit length
     if len(sanitized) > MAX_SAVE_SLOT_NAME_LENGTH:
         sanitized = sanitized[:MAX_SAVE_SLOT_NAME_LENGTH]
     # If empty after sanitization, use default
     if not sanitized:
         sanitized = DEFAULT_SAVE_SLOT
+    
+    # Final security check: ensure normalized path is safe
+    # Create a Path object and verify it doesn't escape save directory
+    try:
+        safe_path = Path(sanitized)
+        # Ensure no parent directory traversal
+        if '..' in str(safe_path) or safe_path.is_absolute():
+            return DEFAULT_SAVE_SLOT
+        # Ensure no Windows reserved names (CON, PRN, AUX, etc.)
+        if platform.system() == 'Windows':
+            reserved_names = {'CON', 'PRN', 'AUX', 'NUL', 
+                            'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
+                            'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'}
+            if sanitized.upper() in reserved_names:
+                return DEFAULT_SAVE_SLOT
+    except (ValueError, OSError):
+        return DEFAULT_SAVE_SLOT
+    
     return sanitized
 
 
 def get_save_paths(slot_name=None):
-    """Get save file paths for a specific slot"""
+    """
+    Get save file paths for a specific slot.
+    Validates that paths are within save directory to prevent path traversal.
+    """
     if slot_name is None:
         slot_name = DEFAULT_SAVE_SLOT
     slot_name = sanitize_slot_name(slot_name)
     save_dir = get_save_dir()
     base_name = f'save_{slot_name}.json'
+    
+    # Build paths
+    save_path = save_dir / base_name
+    temp_path = save_dir / f'{base_name}.tmp'
+    backup_path = save_dir / f'{base_name}.bak'
+    
+    # Security validation: ensure all paths are within save_dir
+    # Use resolve() to normalize paths and check they're within save_dir
+    try:
+        save_dir_resolved = save_dir.resolve()
+        if save_path.resolve().is_relative_to(save_dir_resolved):
+            return {
+                'save': save_path,
+                'temp': temp_path,
+                'backup': backup_path
+            }
+    except (ValueError, AttributeError):
+        # Python < 3.9 fallback: use string comparison
+        save_dir_str = str(save_dir.resolve())
+        save_path_str = str(save_path.resolve())
+        if save_path_str.startswith(save_dir_str):
+            return {
+                'save': save_path,
+                'temp': temp_path,
+                'backup': backup_path
+            }
+    
+    # If validation fails, return safe default paths
+    from ..utils.logging import log_error
+    log_error(f"Path traversal attempt detected for slot: {slot_name}")
+    # Build safe default paths directly to avoid recursion
+    safe_base_name = f'save_{DEFAULT_SAVE_SLOT}.json'
     return {
-        'save': save_dir / base_name,
-        'temp': save_dir / f'{base_name}.tmp',
-        'backup': save_dir / f'{base_name}.bak'
+        'save': save_dir / safe_base_name,
+        'temp': save_dir / f'{safe_base_name}.tmp',
+        'backup': save_dir / f'{safe_base_name}.bak'
     }
 
 
@@ -188,7 +252,16 @@ def load_game(slot_name=None):
         if paths['save'].exists():
             try:
                 with open(paths['save'], 'r') as f:
-                    data = json.load(f)
+                    raw_data = json.load(f)
+                
+                # Validate JSON schema before deserialization
+                from .validation import validate_and_clean_json
+                is_valid, cleaned_data, error_msg = validate_and_clean_json(raw_data)
+                if not is_valid:
+                    raise ValueError(f"Save file validation failed: {error_msg}")
+                
+                # Use cleaned data
+                data = cleaned_data if cleaned_data else raw_data
                 player = Player.from_dict(data)
                 # Restore save slot
                 if 'save_slot' in data:
@@ -204,7 +277,16 @@ def load_game(slot_name=None):
                 if paths['backup'].exists():
                     try:
                         with open(paths['backup'], 'r') as f:
-                            data = json.load(f)
+                            raw_data = json.load(f)
+                        
+                        # Validate JSON schema before deserialization
+                        from .validation import validate_and_clean_json
+                        is_valid, cleaned_data, error_msg = validate_and_clean_json(raw_data)
+                        if not is_valid:
+                            raise ValueError(f"Backup save file validation failed: {error_msg}")
+                        
+                        # Use cleaned data
+                        data = cleaned_data if cleaned_data else raw_data
                         player = Player.from_dict(data)
                         # Restore save slot
                         if 'save_slot' in data:

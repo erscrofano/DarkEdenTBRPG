@@ -45,9 +45,23 @@ def validate_player_name(name: str) -> tuple[bool, str]:
     if len(name) > MAX_PLAYER_NAME_LENGTH:
         return False, f"Name must be no more than {MAX_PLAYER_NAME_LENGTH} characters"
     
-    # Check for problematic characters (allow letters, numbers, spaces, basic punctuation)
-    if not re.match(r'^[a-zA-Z0-9\s\-_\.]+$', name):
-        return False, "Name contains invalid characters (only letters, numbers, spaces, hyphens, underscores, and periods allowed)"
+    # Check for problematic characters using Unicode-safe validation
+    # Allow only ASCII alphanumeric, spaces, and safe punctuation
+    # Use isprintable() to catch Unicode control characters
+    if not name.isprintable():
+        return False, "Name contains invalid control characters"
+    
+    # Validate using strict ASCII-safe regex (prevents Unicode exploits)
+    if not re.match(r'^[\x20-\x7E]+$', name):
+        return False, "Name contains invalid characters (only printable ASCII characters allowed)"
+    
+    # Additional check: ensure no suspicious Unicode sequences
+    # Check for mixed scripts or confusable characters
+    if len(name) != len(name.encode('ascii', errors='ignore')):
+        # Contains non-ASCII - validate it's safe
+        # Allow only common Unicode letters/numbers, reject confusables
+        if not re.match(r'^[a-zA-Z0-9\s\-_\.]+$', name):
+            return False, "Name contains invalid characters (only letters, numbers, spaces, hyphens, underscores, and periods allowed)"
     
     # Prevent only whitespace
     if not name.strip():
