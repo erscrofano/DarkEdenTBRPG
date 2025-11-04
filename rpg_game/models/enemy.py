@@ -2,8 +2,13 @@
 
 
 class Enemy:
-    def __init__(self, name, hp, attack, defense, exp_reward, gold_reward, drops=None):
-        self.name = name
+    def __init__(self, name, hp, attack, defense, exp_reward, gold_reward, drops=None, is_night=False):
+        # Add '+' indicator for night-buffed enemies
+        if is_night:
+            self.name = f"{name} +"
+        else:
+            self.name = name
+        
         self.max_hp = hp
         self.hp = hp
         self.attack = attack
@@ -11,6 +16,7 @@ class Enemy:
         self.exp_reward = exp_reward
         self.gold_reward = gold_reward
         self.drops = drops if drops else []
+        self.is_night = is_night  # Store for combat display
     
     def take_damage(self, damage):
         """

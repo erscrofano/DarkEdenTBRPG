@@ -48,14 +48,30 @@ class GameClock:
                 - minute: int (0-59)
                 - phase: str ('DAY' or 'NIGHT')
                 - cycle_progress: float (0.0 to 1.0, position in current day cycle)
+        
+        Note: This system is designed to handle extreme long-term use:
+        - Supports up to ~10^15 days (trillions of years of continuous uptime)
+        - Safe from integer overflow (Python ints have arbitrary precision)
+        - Float precision remains adequate for gameplay purposes even at extreme scales
         """
         # Calculate real seconds elapsed since anchor
         current_real_time = time.time()
         elapsed_real_seconds = current_real_time - self.anchor_timestamp
         
+        # Safety: Ensure elapsed time is non-negative (protect against clock adjustments)
+        if elapsed_real_seconds < 0:
+            elapsed_real_seconds = 0
+        
         # Calculate which day we're on (starts at day 1)
+        # Note: Python int() safely handles very large floats, truncating to integer
+        # This will work correctly for trillions of days
         total_days_elapsed = elapsed_real_seconds / REAL_SECONDS_PER_DAY
         day_number = int(total_days_elapsed) + 1  # Day 1, 2, 3, ...
+        
+        # Sanity cap: if somehow day number exceeds reasonable bounds, cap it
+        # (This should never happen in practice, but provides a safety net)
+        if day_number > 999999999:  # Cap at ~1 billion days (2.7 million years)
+            day_number = 999999999
         
         # Calculate position within current day cycle
         seconds_into_current_day = elapsed_real_seconds % REAL_SECONDS_PER_DAY

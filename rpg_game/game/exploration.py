@@ -50,8 +50,8 @@ def explore_location(player, location_name):
             encounter_chance = random.random()
             if encounter_chance < ENCOUNTER_CHANCE:  # 70% chance of combat
                 enemy_template = random.choice(enemy_pool).copy()
-                # Scale enemy based on player level
-                enemy_data = scale_enemy(enemy_template, player.level, location_multiplier)
+                # Scale enemy based on player level (pass player for night buffs)
+                enemy_data = scale_enemy(enemy_template, player.level, location_multiplier, player)
                 
                 enemy = Enemy(
                     name=enemy_data['name'],
@@ -60,7 +60,8 @@ def explore_location(player, location_name):
                     defense=enemy_data['defense'],
                     exp_reward=enemy_data['exp'],
                     gold_reward=enemy_data['gold'],
-                    drops=enemy_data.get('drops', [])
+                    drops=enemy_data.get('drops', []),
+                    is_night=enemy_data.get('is_night', False)
                 )
                 # Pass through boss flag if present
                 enemy.is_boss = enemy_data.get('is_boss', False)
@@ -179,7 +180,7 @@ def explore_tepes_lair(player):
             # Lair enemies scale more aggressively
             enemy_template = random.choice(enemy_pool).copy()
             lair_multiplier = 1.0 + (lair_level * 0.1)  # Each floor adds 10% difficulty
-            enemy_data = scale_enemy(enemy_template, difficulty_level, lair_multiplier)
+            enemy_data = scale_enemy(enemy_template, difficulty_level, lair_multiplier, player)
             
             # Lair rewards scale with floor level
             reward_multiplier = 1.0 + (lair_level * 0.2)
@@ -207,7 +208,8 @@ def explore_tepes_lair(player):
                 defense=enemy_data['defense'],
                 exp_reward=enemy_data['exp'],
                 gold_reward=enemy_data['gold'],
-                drops=enemy_data.get('drops', [])
+                drops=enemy_data.get('drops', []),
+                is_night=enemy_data.get('is_night', False)
             )
             # Pass through boss flag if present
             enemy.is_boss = enemy_data.get('is_boss', False)
@@ -444,7 +446,7 @@ def explore_multi_floor_dungeon(player, dungeon_name, floors, start_floor='b1'):
                     enemy_pool = BASE_ENEMIES  # All tiers for end game
             
             enemy_template = random.choice(enemy_pool).copy()
-            enemy_data = scale_enemy(enemy_template, difficulty_level, location_multiplier)
+            enemy_data = scale_enemy(enemy_template, difficulty_level, location_multiplier, player)
             
             enemy = Enemy(
                 name=f"{enemy_data['name']} ({floor_key.upper()})",
@@ -453,7 +455,8 @@ def explore_multi_floor_dungeon(player, dungeon_name, floors, start_floor='b1'):
                 defense=enemy_data['defense'],
                 exp_reward=enemy_data['exp'],
                 gold_reward=enemy_data['gold'],
-                drops=enemy_data.get('drops', [])
+                drops=enemy_data.get('drops', []),
+                is_night=enemy_data.get('is_night', False)
             )
             enemy.is_boss = enemy_data.get('is_boss', False)
             

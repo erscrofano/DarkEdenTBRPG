@@ -19,9 +19,28 @@ from ..items import DROP_ITEMS, add_item_to_inventory, remove_item_from_inventor
 from ..achievements.system import check_achievements, log_rare_drop
 from ..game.stats import allocate_stats
 
+# Night combat bonuses
+NIGHT_MONSTER_HP_BUFF = 1.30      # 30% HP increase
+NIGHT_MONSTER_ATTACK_BUFF = 1.30  # 30% attack increase
+NIGHT_DROP_RATE_BUFF = 1.50       # 50% drop rate increase (multiplicative)
 
-def scale_enemy(enemy_template, player_level, location_multiplier=1.0):
-    """Scale enemy stats based on player level and location (eased growth curve)"""
+
+def is_nighttime(player):
+    """Check if it's currently nighttime based on player's world clock"""
+    from ..systems.time_system import GameClock
+    clock = GameClock(player.world_anchor_timestamp)
+    return clock.is_night()
+
+
+def scale_enemy(enemy_template, player_level, location_multiplier=1.0, player=None):
+    """
+    Scale enemy stats based on player level and location (eased growth curve).
+    
+    Night Buffs (when player provided and it's nighttime):
+    - HP increased by 30%
+    - Attack increased by 30%
+    - Drop rates increased by 50% (handled in combat function)
+    """
     # Smooth difficulty curve: use asymptotic scaling instead of linear
     # Formula: scaler = ENEMY_SCALE_BASE + (1 - (ENEMY_SCALE_DECAY ** level_diff)) * ENEMY_SCALE_MULTIPLIER
     # This provides strong early scaling that tapers off for smoother progression
@@ -38,6 +57,14 @@ def scale_enemy(enemy_template, player_level, location_multiplier=1.0):
     exp = int(enemy_template['base_exp'] * scale_factor)
     gold = int(enemy_template['base_gold'] * scale_factor)
     
+    # Apply night buffs if it's nighttime
+    is_night = False
+    if player and hasattr(player, 'world_anchor_timestamp'):
+        is_night = is_nighttime(player)
+        if is_night:
+            hp = int(hp * NIGHT_MONSTER_HP_BUFF)
+            attack = int(attack * NIGHT_MONSTER_ATTACK_BUFF)
+    
     return {
         'name': enemy_template['name'],
         'hp': hp,
@@ -47,7 +74,8 @@ def scale_enemy(enemy_template, player_level, location_multiplier=1.0):
         'gold': gold,
         'drops': enemy_template['drops'],
         'tier': enemy_template.get('tier', 1),  # Track tier for boss detection
-        'is_boss': enemy_template.get('is_boss', False)  # Mark bosses/elites
+        'is_boss': enemy_template.get('is_boss', False),  # Mark bosses/elites
+        'is_night': is_night  # Track if spawned during night for display
     }
 
 
@@ -57,7 +85,15 @@ def combat(player, enemy):
     
     clear_screen()
     print(colorize("=" * 60, Colors.BRIGHT_RED))
-    print(colorize("⚔️  BATTLE BEGINS! ⚔️", Colors.BRIGHT_RED + Colors.BOLD))
+    
+    # Show night battle indicator if enemy spawned at night
+    if hasattr(enemy, 'is_night') and enemy.is_night:
+        print(colorize("🌙  NIGHT BATTLE - ENEMIES EMPOWERED!  🌙", Colors.BRIGHT_MAGENTA + Colors.BOLD))
+        print(colorize("=" * 60, Colors.BRIGHT_MAGENTA))
+        print(colorize("⚠️  +30% HP & ATK | +50% Drop Rate  ⚠️", Colors.BRIGHT_YELLOW + Colors.BOLD))
+    else:
+        print(colorize("⚔️  BATTLE BEGINS! ⚔️", Colors.BRIGHT_RED + Colors.BOLD))
+    
     print(colorize("=" * 60, Colors.BRIGHT_RED))
     
     while player.is_alive() and enemy.is_alive():
@@ -166,8 +202,14 @@ def combat(player, enemy):
                 # Handle drops with rarity display (OSRS-style)
                 drops_received = []
                 if enemy.drops:
+                    # Calculate night drop bonus
+                    drop_multiplier = NIGHT_DROP_RATE_BUFF if hasattr(enemy, 'is_night') and enemy.is_night else 1.0
+                    
                     for drop in enemy.drops:
-                        if random.random() < drop['chance']:
+                        # Apply night bonus to drop rate (multiplicative, capped at 100%)
+                        adjusted_drop_chance = min(1.0, drop['chance'] * drop_multiplier)
+                        
+                        if random.random() < adjusted_drop_chance:
                             drop_item = DROP_ITEMS[drop['item']].copy()
                             add_item_to_inventory(player.inventory, drop_item)
                             drops_received.append(drop_item)
