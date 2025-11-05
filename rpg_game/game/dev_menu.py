@@ -42,11 +42,13 @@ def dev_menu(player):
         print(f"\n{colorize('SAVE MANAGEMENT:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
         print(f"  {colorize('9.', Colors.WHITE)} Rename Save Slot")
         print(f"  {colorize('10.', Colors.WHITE)} Delete Save Slot")
+        
         print(f"\n{colorize('GAME DATA:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
         print(f"  {colorize('11.', Colors.WHITE)} View All Items")
         print(f"  {colorize('12.', Colors.WHITE)} View All Monsters")
+        
         print(f"\n{colorize('NAVIGATION:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
-        print(f"  {colorize('13.', Colors.WHITE)} Back to Game")
+        print(f"  {colorize('0.', Colors.WHITE)} Back to Game")
         print(colorize("=" * 60, Colors.BRIGHT_MAGENTA))
         
         choice = input(f"\n{colorize('Select option:', Colors.BRIGHT_CYAN)} ").strip()
@@ -75,7 +77,7 @@ def dev_menu(player):
             view_all_items()
         elif choice == '12':
             view_all_monsters()
-        elif choice == '13':
+        elif choice == '0':
             break
         else:
             print(f"\n{colorize('❌ Invalid choice!', Colors.BRIGHT_RED)}")
@@ -419,4 +421,8 @@ def delete_save_slot_wrapper():
         return
     
     delete_save_slot_menu(slots)
+
+
+
+
 

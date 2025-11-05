@@ -13,13 +13,9 @@ from pathlib import Path
 
 
 class GameManager:
-    """
-    Central game state manager and coordinator.
-    Manages game loop, state transitions, and system coordination.
-    """
+    """Central game state manager"""
     
     def __init__(self):
-        """Initialize the game manager"""
         self.state = GameState.INITIALIZING
         self.player: Optional[Player] = None
         self.current_location: Optional[str] = None
@@ -28,7 +24,7 @@ class GameManager:
         self.selected_slot: Optional[str] = None
         
     def run(self):
-        """Main game loop with state machine"""
+        """Main game loop"""
         log_info("GameManager started")
         self.transition_to(GameState.MAIN_MENU)
         
@@ -36,36 +32,28 @@ class GameManager:
             try:
                 if self.state == GameState.MAIN_MENU:
                     self.handle_main_menu()
-                    
                 elif self.state == GameState.CHARACTER_CREATION:
                     if not self.handle_character_creation():
                         self.transition_to(GameState.MAIN_MENU)
-                        
                 elif self.state == GameState.LOADING_GAME:
                     if not self.handle_loading_game():
                         self.transition_to(GameState.MAIN_MENU)
-                        
                 elif self.state == GameState.IN_GAME:
                     self.handle_in_game()
-                    
                 elif self.state == GameState.GAME_OVER:
                     self.handle_game_over()
-                    
                 elif self.state == GameState.QUITTING:
                     self.handle_quitting()
                     break
                     
             except (KeyboardInterrupt, SystemExit):
-                # Let system exceptions propagate
                 raise
             except (ValueError, TypeError, AttributeError, KeyError) as e:
-                # Handle specific expected exceptions
                 log_error(f"Error in game state {self.state}: {e}", exc_info=True)
                 print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize('An error occurred. Returning to main menu...', Colors.WHITE)}")
                 input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
                 self.transition_to(GameState.MAIN_MENU)
             except Exception as e:
-                # Catch-all for unexpected errors, but log them properly
                 log_error(f"Unexpected error in game state {self.state}: {e}", exc_info=True)
                 print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize('An unexpected error occurred. Returning to main menu...', Colors.WHITE)}")
                 input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
@@ -74,7 +62,7 @@ class GameManager:
         log_info("GameManager stopped")
     
     def transition_to(self, new_state: GameState):
-        """Safely transition to a new game state with validation"""
+        """Transition to new game state"""
         if validate_transition(self.state, new_state):
             log_info(f"State transition: {self.state} → {new_state}")
             self.state = new_state
@@ -110,34 +98,28 @@ class GameManager:
             self.transition_to(GameState.LOADING_GAME)
     
     def handle_character_creation(self) -> bool:
-        """
-        Handle new character creation.
-        Returns True if successful, False to return to main menu.
-        """
+        """Handle new character creation"""
         if self.selected_slot is None:
             log_error("Character creation called without selected slot")
             return False
         
         print(f"\n{colorize('Creating new character in save slot:', Colors.BRIGHT_GREEN)} {colorize(self.selected_slot, Colors.BRIGHT_CYAN)}")
         
-        # Get player name with validation
         while True:
             name = input(f"\n{colorize('Enter your name:', Colors.BRIGHT_CYAN)} ").strip()
             is_valid, error_msg = validate_player_name(name)
             if is_valid:
                 break
-            elif not name:  # Empty name defaults to "Hero"
+            elif not name:
                 name = "Hero"
                 break
             else:
                 print(f"\n{colorize('❌', Colors.BRIGHT_RED)} {colorize(error_msg, Colors.WHITE)}")
         
-        # Create new player
         self.player = Player(name)
         self.player.save_slot = self.selected_slot
         self.current_location = self.player.current_location
         
-        # Welcome message
         print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(f'Welcome, {self.player.name}!', Colors.BRIGHT_GREEN)}")
         print(f"⚔️ You start with a {self.player.weapon['name']} (+{self.player.weapon['attack']} Attack)")
         print(f"💰 You have {self.player.gold} gold to start your adventure!")
@@ -148,10 +130,7 @@ class GameManager:
         return True
     
     def handle_loading_game(self) -> bool:
-        """
-        Handle loading an existing save.
-        Returns True if successful, False to return to main menu.
-        """
+        """Load existing save"""
         if self.selected_slot is None:
             log_error("Loading game called without selected slot")
             return False
@@ -228,7 +207,7 @@ class GameManager:
             self.transition_to(GameState.QUITTING)
     
     def _handle_eslania_city(self) -> bool:
-        """Handle Eslania City menu and actions. Returns False to end game loop."""
+        """Handle Eslania City menu"""
         from ..game import eslania_city_menu
         from ..services.actions import LocationHandlerService
         
@@ -248,7 +227,7 @@ class GameManager:
         return should_continue
     
     def _handle_perona_outpost(self) -> bool:
-        """Handle Perona Outpost menu and actions. Returns False to end game loop."""
+        """Handle Perona Outpost menu"""
         from ..game import perona_outpost_menu
         from ..services.actions import LocationHandlerService
         

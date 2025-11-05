@@ -15,14 +15,13 @@ from ..constants import (
     ENEMY_SCALE_BASE, ENEMY_SCALE_MULTIPLIER, ENEMY_SCALE_DECAY
 )
 from ..ui import Colors, colorize, clear_screen, show_notification, health_bar
-from ..items import DROP_ITEMS, add_item_to_inventory, remove_item_from_inventory, get_item_quantity, format_item_name, get_item_rarity, ITEM_RARITY
-from ..achievements.system import check_achievements, log_rare_drop
+from ..items import DROP_ITEMS, add_item_to_inventory, remove_item_from_inventory, get_item_quantity, format_item_name
+from ..achievements.system import check_achievements
 from ..game.stats import allocate_stats
 
-# Night combat bonuses
-NIGHT_MONSTER_HP_BUFF = 1.30      # 30% HP increase
-NIGHT_MONSTER_ATTACK_BUFF = 1.30  # 30% attack increase
-NIGHT_DROP_RATE_BUFF = 1.50       # 50% drop rate increase (multiplicative)
+NIGHT_MONSTER_HP_BUFF = 1.30
+NIGHT_MONSTER_ATTACK_BUFF = 1.30
+NIGHT_DROP_RATE_BUFF = 1.50
 
 
 def is_nighttime(player):
@@ -33,31 +32,17 @@ def is_nighttime(player):
 
 
 def scale_enemy(enemy_template, player_level, location_multiplier=1.0, player=None):
-    """
-    Scale enemy stats based on player level and location (eased growth curve).
-    
-    Night Buffs (when player provided and it's nighttime):
-    - HP increased by 30%
-    - Attack increased by 30%
-    - Drop rates increased by 50% (handled in combat function)
-    """
-    # Smooth difficulty curve: use asymptotic scaling instead of linear
-    # Formula: scaler = ENEMY_SCALE_BASE + (1 - (ENEMY_SCALE_DECAY ** level_diff)) * ENEMY_SCALE_MULTIPLIER
-    # This provides strong early scaling that tapers off for smoother progression
+    """Scale enemy stats based on player level and location"""
     level_diff = max(0, player_level - enemy_template['tier'])
-    
-    # Asymptotic scaler that caps growth smoothly
     base_scaler = ENEMY_SCALE_BASE + (1 - (ENEMY_SCALE_DECAY ** level_diff)) * ENEMY_SCALE_MULTIPLIER
     scale_factor = base_scaler * location_multiplier
     
-    # Apply scaling
     hp = int(enemy_template['base_hp'] * scale_factor)
     attack = int(enemy_template['base_attack'] * scale_factor)
     defense = int(enemy_template['base_defense'] * scale_factor)
     exp = int(enemy_template['base_exp'] * scale_factor)
     gold = int(enemy_template['base_gold'] * scale_factor)
     
-    # Apply night buffs if it's nighttime
     is_night = False
     if player and hasattr(player, 'world_anchor_timestamp'):
         is_night = is_nighttime(player)
@@ -73,9 +58,9 @@ def scale_enemy(enemy_template, player_level, location_multiplier=1.0, player=No
         'exp': exp,
         'gold': gold,
         'drops': enemy_template['drops'],
-        'tier': enemy_template.get('tier', 1),  # Track tier for boss detection
-        'is_boss': enemy_template.get('is_boss', False),  # Mark bosses/elites
-        'is_night': is_night  # Track if spawned during night for display
+        'tier': enemy_template.get('tier', 1),
+        'is_boss': enemy_template.get('is_boss', False),
+        'is_night': is_night
     }
 
 
@@ -211,9 +196,7 @@ def combat(player, enemy):
                         
                         if random.random() < adjusted_drop_chance:
                             item_id = drop['item']
-                            # Safety check: ensure item exists in DROP_ITEMS
                             if item_id not in DROP_ITEMS:
-                                # Log error but don't crash - skip this drop
                                 import sys
                                 print(f"\nWARNING: Missing item definition '{item_id}' - skipping drop", file=sys.stderr)
                                 continue
@@ -222,21 +205,11 @@ def combat(player, enemy):
                             add_item_to_inventory(player.inventory, drop_item)
                             drops_received.append(drop_item)
                             
-                            # Check for rare/legendary drop achievements
-                            drop_value = drop_item.get('sell_value', 0)
-                            check_achievements(player, 'rare_drop', drop_value)
-                            
-                            # Check for talisman achievements
                             if drop_item.get('type') == 'talisman':
                                 check_achievements(player, 'talisman_found')
                                 if drop_item.get('name') == 'Talisman of the Hacker':
                                     check_achievements(player, 'talisman_hacker')
-                                # Check talisman count achievements
                                 check_achievements(player, 'talisman_count')
-                            
-                            # Log rare drops (Epic ≥75, Legendary ≥200)
-                            if drop_value >= 75:
-                                log_rare_drop(player, drop_item, drop_value)
                     
                     if drops_received:
                         print(f"\n{colorize('📦', Colors.BRIGHT_CYAN)} {colorize('LOOT OBTAINED:', Colors.BRIGHT_CYAN + Colors.BOLD)}")
@@ -244,23 +217,13 @@ def combat(player, enemy):
                         for drop_item in drops_received:
                             formatted_name = format_item_name(drop_item)
                             print(f"  {colorize('•', Colors.BRIGHT_CYAN)} {formatted_name}")
-                        
-                            # Special notification for rare drops
-                        for drop_item in drops_received:
-                            rarity = get_item_rarity(drop_item)
-                            if rarity in ['epic', 'legendary']:
-                                rarity_name = ITEM_RARITY[rarity]['name']
-                                show_notification(f"{rarity_name} drop: {drop_item['name']}!", ITEM_RARITY[rarity]['color'], NOTIFICATION_DURATION_LONG)
                 
-                # Update kill tracking (Kal Online inspired)
                 player.kill_streak += 1
                 player.total_kills += 1
                 
-                # Kill streak notifications
                 if player.kill_streak % KILL_STREAK_NOTIFICATION_INTERVAL == 0 and player.kill_streak > 0:
                     show_notification(f"Kill Streak: {player.kill_streak}!", Colors.BRIGHT_RED, NOTIFICATION_DURATION_NORMAL)
                 
-                # Check achievements
                 check_achievements(player, 'kills')
                 check_achievements(player, 'streak')
                 

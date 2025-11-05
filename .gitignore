@@ -40,3 +40,7 @@ Thumbs.db
 *.save
 *.sav
 
+# Developer authentication (NEVER COMMIT THIS)
+.dev_key
+.dev_key.bak
+

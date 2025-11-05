@@ -5,37 +5,18 @@ from ..ui import Colors, colorize
 
 
 def sanitize_input(user_input: str) -> str:
-    """
-    Sanitize user input by removing control characters and extra whitespace.
-    
-    Args:
-        user_input: Raw user input string
-        
-    Returns:
-        Sanitized string
-    """
+    """Sanitize user input"""
     if not isinstance(user_input, str):
         return ""
     
-    # Remove control characters (except newlines/tabs for multiline if needed)
     sanitized = re.sub(r'[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]', '', user_input)
-    
-    # Strip leading/trailing whitespace
     sanitized = sanitized.strip()
     
     return sanitized
 
 
 def validate_player_name(name: str) -> tuple[bool, str]:
-    """
-    Validate player name.
-    
-    Args:
-        name: Player name to validate
-        
-    Returns:
-        Tuple of (is_valid, error_message)
-    """
+    """Validate player name"""
     if not name:
         return False, "Name cannot be empty"
     
@@ -45,25 +26,16 @@ def validate_player_name(name: str) -> tuple[bool, str]:
     if len(name) > MAX_PLAYER_NAME_LENGTH:
         return False, f"Name must be no more than {MAX_PLAYER_NAME_LENGTH} characters"
     
-    # Check for problematic characters using Unicode-safe validation
-    # Allow only ASCII alphanumeric, spaces, and safe punctuation
-    # Use isprintable() to catch Unicode control characters
     if not name.isprintable():
         return False, "Name contains invalid control characters"
     
-    # Validate using strict ASCII-safe regex (prevents Unicode exploits)
     if not re.match(r'^[\x20-\x7E]+$', name):
         return False, "Name contains invalid characters (only printable ASCII characters allowed)"
     
-    # Additional check: ensure no suspicious Unicode sequences
-    # Check for mixed scripts or confusable characters
     if len(name) != len(name.encode('ascii', errors='ignore')):
-        # Contains non-ASCII - validate it's safe
-        # Allow only common Unicode letters/numbers, reject confusables
         if not re.match(r'^[a-zA-Z0-9\s\-_\.]+$', name):
             return False, "Name contains invalid characters (only letters, numbers, spaces, hyphens, underscores, and periods allowed)"
     
-    # Prevent only whitespace
     if not name.strip():
         return False, "Name cannot be only whitespace"
     
@@ -71,17 +43,7 @@ def validate_player_name(name: str) -> tuple[bool, str]:
 
 
 def get_validated_choice(prompt: str, valid_choices: list[str], case_sensitive: bool = False) -> str | None:
-    """
-    Get user input and validate it against a list of valid choices.
-    
-    Args:
-        prompt: Prompt to display to user
-        valid_choices: List of valid choice strings
-        case_sensitive: Whether comparison should be case-sensitive
-        
-    Returns:
-        Valid choice string or None if cancelled
-    """
+    """Get validated user choice"""
     while True:
         choice = input(prompt).strip()
         choice = sanitize_input(choice)
@@ -104,17 +66,7 @@ def get_validated_choice(prompt: str, valid_choices: list[str], case_sensitive: 
 
 
 def get_validated_int(prompt: str, min_value: int | None = None, max_value: int | None = None) -> int | None:
-    """
-    Get user input and validate it as an integer within optional bounds.
-    
-    Args:
-        prompt: Prompt to display to user
-        min_value: Optional minimum value (inclusive)
-        max_value: Optional maximum value (inclusive)
-        
-    Returns:
-        Valid integer or None if cancelled
-    """
+    """Get validated integer input"""
     while True:
         choice = input(prompt).strip()
         choice = sanitize_input(choice)

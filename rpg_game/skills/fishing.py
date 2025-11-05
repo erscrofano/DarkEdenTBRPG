@@ -6,7 +6,7 @@ from datetime import datetime
 from ..config import DEV_FLAGS
 from ..ui import Colors, colorize, clear_screen, show_notification
 from ..items.inventory import add_item_to_inventory
-from ..items.rarity import get_item_rarity, format_item_name, ITEM_RARITY
+from ..items.rarity import format_item_name
 from ..models.location import LOCATIONS
 from ..save.system import get_save_dir
 from .core import add_skill_xp
@@ -294,10 +294,7 @@ def go_fishing(player):
                 if catch_count == 1:
                     check_achievements(player, 'first_catch')
                 
-                # Show catch notification (brief)
                 if not DEV_FLAGS['quiet']:
-                    rarity_key = get_item_rarity(caught_fish_data)
-                    rarity_info = ITEM_RARITY[rarity_key]
                     formatted_name = format_item_name(caught_fish_data)
                     from ..constants import NOTIFICATION_DURATION_MEDIUM
                     show_notification(f"🎣 Caught {formatted_name}! +{xp_amount} XP", Colors.BRIGHT_GREEN, NOTIFICATION_DURATION_MEDIUM)

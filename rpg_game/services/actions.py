@@ -5,13 +5,13 @@ from ..save.system import save_game
 
 
 class GameActionService:
-    """Service layer for handling game actions"""
+    """Service layer for game actions"""
     
     def __init__(self, player: Player):
         self.player = player
     
     def handle_shop_action(self, shop_type: str) -> bool:
-        """Handle shop actions"""
+        """Handle shop interaction"""
         from ..game import (
             knight_guild, army_guild, cleric_guild,
             general_store, fishing_store, mining_store
@@ -33,7 +33,7 @@ class GameActionService:
         return False
     
     def handle_service_action(self, service_type: str) -> bool:
-        """Handle service actions"""
+        """Handle service interaction"""
         from ..game import hospital, pimping_service
         from ..skills import training_simulator, cook_fish
         
@@ -51,7 +51,7 @@ class GameActionService:
         return False
     
     def handle_exploration_action(self, location: str) -> Optional[str]:
-        """Handle exploration actions"""
+        """Handle exploration"""
         from ..game.exploration import explore_location, explore_multi_floor_dungeon
         
         if location == 'underground_waterways':
@@ -66,7 +66,7 @@ class GameActionService:
         return None
     
     def handle_skill_action(self, skill_type: str) -> bool:
-        """Handle skill actions"""
+        """Handle skill use"""
         from ..skills import go_fishing, go_mining
         
         skill_handlers = {
@@ -81,7 +81,7 @@ class GameActionService:
         return False
     
     def handle_player_info_action(self) -> bool:
-        """Handle player info display"""
+        """Display player stats"""
         from ..ui import clear_screen
         from ..game.stats import allocate_stats
         
@@ -97,7 +97,7 @@ class GameActionService:
         return True
     
     def handle_view_action(self, view_type: str) -> bool:
-        """Handle view actions"""
+        """Handle view screens"""
         from ..game import view_inventory, view_achievements
         
         view_handlers = {
@@ -112,13 +112,13 @@ class GameActionService:
         return False
     
     def handle_save_action(self) -> tuple[bool, str]:
-        """Handle save action"""
+        """Save game"""
         if save_game(self.player):
             return True, "Game saved successfully!"
         return False, "Failed to save game!"
     
     def handle_stat_allocation(self) -> bool:
-        """Handle stat allocation"""
+        """Allocate stat points"""
         from ..game.stats import allocate_stats
         
         if self.player.stat_points > 0:
@@ -128,21 +128,24 @@ class GameActionService:
 
 
 class LocationHandlerService:
-    """Service for handling location-specific menus"""
+    """Location menu handler"""
     
     def __init__(self, player: Player):
         self.player = player
         self.action_service = GameActionService(player)
     
     def handle_eslania_city_choice(self, choice: str) -> tuple[bool, Optional[str]]:
-        """
-        Handle Eslania City menu choice.
-        Returns: (should_continue, new_location_or_none)
-        """
+        """Handle Eslania City menu choice"""
         from ..game import eslania_city_menu, locations_menu
         from ..game.dev_menu import dev_menu
         from ..game.travel import handle_travel
         from ..ui import clear_screen, Colors, colorize
+        
+        # Check if this is a modern UI command string
+        if isinstance(choice, str) and ':' in choice or choice in ['save', 'quit', 'travel', 'invalid', 'dev_menu']:
+            from .command_router import CommandRouter
+            router = CommandRouter(self.player, self.action_service)
+            return router.route_command(choice)
         
         # Hidden dev menu
         if choice == '1337':
@@ -262,10 +265,7 @@ class LocationHandlerService:
         return True, None
     
     def handle_perona_outpost_choice(self, choice: str) -> tuple[bool, Optional[str]]:
-        """
-        Handle Perona Outpost menu choice.
-        Returns: (should_continue, new_location_or_none)
-        """
+        """Handle Perona Outpost menu choice"""
         from ..game import perona_outpost_menu, locations_menu
         from ..game.dev_menu import dev_menu
         from ..game.exploration import explore_multi_floor_dungeon

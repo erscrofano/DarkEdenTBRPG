@@ -18,31 +18,26 @@ class Player:
         self.level = STARTING_LEVEL
         self.exp = STARTING_EXP
         self.exp_to_next = STARTING_EXP_TO_NEXT
-        # Base stats
-        self.base_hp = STARTING_BASE_HP  # HP stat
-        self.str = STARTING_STR  # Strength - increases max damage
-        self.dex = STARTING_DEX  # Dexterity - increases chance for high damage rolls
-        self.agl = STARTING_AGL  # Agility - increases dodge chance
-        self.stat_points = STARTING_STAT_POINTS  # Unallocated stat points
-        # Derived stats
-        self.max_hp = self.base_hp * HP_PER_STAT_POINT  # Each HP point = 10 max HP
+        self.base_hp = STARTING_BASE_HP
+        self.str = STARTING_STR
+        self.dex = STARTING_DEX
+        self.agl = STARTING_AGL
+        self.stat_points = STARTING_STAT_POINTS
+        self.max_hp = self.base_hp * HP_PER_STAT_POINT
         self.hp = self.max_hp
         self.attack = STARTING_ATTACK
         self.defense = STARTING_DEFENSE
         self.gold = STARTING_GOLD
         self.inventory = []
-        # Give starter weapon (G0 Training Sword)
         from ..items.definitions import SWORDS
         self.weapon = SWORDS['g0'].copy()
         self.armor = None
-        self.tool = None  # Equipped tool (fishing rod, pickaxe, etc.)
-        # Tracking stats (Kal Online / OSRS inspired)
+        self.tool = None
         self.kill_streak = 0
         self.total_kills = 0
         self.highest_level_enemy = 0
-        self.highest_tower_floor = 0  # Track highest Tepes Lair floor reached
+        self.highest_tower_floor = 0
         self.achievements = []
-        # Skills
         self.fishing_level = STARTING_SKILL_LEVEL
         self.fishing_exp = STARTING_SKILL_EXP
         self.fishing_exp_to_next = STARTING_SKILL_EXP_TO_NEXT
@@ -52,16 +47,12 @@ class Player:
         self.mining_level = STARTING_SKILL_LEVEL
         self.mining_exp = STARTING_SKILL_EXP
         self.mining_exp_to_next = STARTING_SKILL_EXP_TO_NEXT
-        # Location tracking
         self.current_location = 'eslania_city'
-        # Save slot tracking
         from ..constants import DEFAULT_SAVE_SLOT
         self.save_slot = DEFAULT_SAVE_SLOT
-        # World time anchor - marks "day 1, hour 0" for this world (Unix timestamp)
-        # Randomize starting time so each character feels unique (0-23 hours offset)
         import time
         import random
-        random_offset = random.randint(0, 3600)  # 0-60 minutes random offset
+        random_offset = random.randint(0, 3600)
         self.world_anchor_timestamp = time.time() - random_offset
         
     def to_dict(self):

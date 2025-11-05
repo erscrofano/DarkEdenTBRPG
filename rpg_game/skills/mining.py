@@ -5,9 +5,9 @@ import threading
 from ..config import DEV_FLAGS
 from ..ui import Colors, colorize, clear_screen, show_notification, skill_xp_bar
 from ..items.inventory import add_item_to_inventory
-from ..items.rarity import get_item_rarity, format_item_name, ITEM_RARITY
+from ..items.rarity import format_item_name
 from ..models.location import LOCATIONS
-from ..achievements.system import check_achievements, log_rare_drop
+from ..achievements.system import check_achievements
 from .core import add_skill_xp
 
 
@@ -250,10 +250,7 @@ def go_mining(player):
                 if mine_count == 1:
                     check_achievements(player, 'first_mine')
                 
-                # Show mine notification (brief)
                 if not DEV_FLAGS['quiet']:
-                    rarity_key = get_item_rarity(mined_ore_data)
-                    rarity_info = ITEM_RARITY[rarity_key]
                     formatted_name = format_item_name(mined_ore_data)
                     from ..constants import NOTIFICATION_DURATION_MEDIUM
                     show_notification(f"⛏️ Mined {formatted_name}! +{xp_amount} XP", Colors.BRIGHT_GREEN, NOTIFICATION_DURATION_MEDIUM)
@@ -302,9 +299,6 @@ def go_mining(player):
             for ore_key, ore_data in MINING_ORES.items():
                 if ore_data['name'] == ore_name and ore_data['sell_value'] >= 75:
                     check_achievements(player, 'rare_drop', ore_data['sell_value'])
-                    # Log rare gems
-                    if ore_data['sell_value'] >= 75:
-                        log_rare_drop(player, ore_data, ore_data['sell_value'])
                     break
     else:
         print(f"\n{colorize('No ores mined this session.', Colors.WHITE)}")

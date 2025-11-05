@@ -470,55 +470,10 @@ def locations_menu(player):
 
 
 def eslania_city_menu(player):
-    """Eslania City main menu - merged with Town"""
-    clear_screen()
-    location = LOCATIONS['eslania_city']
-    display_time_hud(player)  # Real-time clock display
-    print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
-    print(colorize(f"🏰 {location.name.upper()}", Colors.BRIGHT_YELLOW + Colors.BOLD))
-    print(colorize("=" * 60, Colors.BRIGHT_YELLOW))
-    print(f"\n{colorize('A grand city with guilds, shops, and access to dangerous dungeons.', Colors.WHITE)}")
-    print(f"\n{colorize(f'Level: {player.level} | Gold: {player.gold} | HP: {player.hp}/{player.max_hp}', Colors.BRIGHT_YELLOW)}")
-    
-    print("\n" + colorize("=" * 50, Colors.BRIGHT_YELLOW))
-    print(colorize("MAIN MENU", Colors.BRIGHT_YELLOW + Colors.BOLD))
-    print(colorize("=" * 50, Colors.BRIGHT_YELLOW))
-    print(f"\n{colorize('GUILDS:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
-    print(f"  {colorize('1.', Colors.WHITE)} Knight Guild")
-    print(f"  {colorize('2.', Colors.WHITE)} Army Guild")
-    print(f"  {colorize('3.', Colors.WHITE)} Cleric Guild")
-    print(f"\n{colorize('SHOPS:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
-    print(f"  {colorize('4.', Colors.WHITE)} General Store")
-    print(f"  {colorize('5.', Colors.WHITE)} Fishing Store")
-    print(f"  {colorize('6.', Colors.WHITE)} Mining Store")
-    print(f"\n{colorize('SERVICES:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
-    print(f"  {colorize('7.', Colors.WHITE)} Hospital")
-    print(f"  {colorize('8.', Colors.WHITE)} Pimping")
-    print(f"  {colorize('9.', Colors.WHITE)} Training Zone")
-    print(f"  {colorize('10.', Colors.WHITE)} Kitchen")
-    print(f"\n{colorize('EXPLORATION:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
-    print(f"  {colorize('11.', Colors.WHITE)} Underground Waterways")
-    print(f"  {colorize('12.', Colors.WHITE)} Eslania Dungeon")
-    print(f"  {colorize('13.', Colors.WHITE)} Go Fishing")
-    print(f"  {colorize('14.', Colors.WHITE)} Go Mining")
-    print(f"  {colorize('15.', Colors.WHITE)} Travel to Another Location")
-    print(f"\n{colorize('CHARACTER:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
-    print(f"  {colorize('16.', Colors.WHITE)} View Stats")
-    print(f"  {colorize('17.', Colors.WHITE)} View Inventory")
-    print(f"  {colorize('18.', Colors.WHITE)} View Achievements {colorize(f'({len(player.achievements)} unlocked)', Colors.BRIGHT_MAGENTA)}")
-    if player.stat_points > 0:
-        print(f"  {colorize('19.', Colors.BRIGHT_YELLOW)} Allocate Stat Points {colorize(f'({player.stat_points} available)', Colors.BRIGHT_YELLOW + Colors.BOLD)}")
-    print(f"\n{colorize('GAME:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
-    if player.stat_points > 0:
-        print(f"  {colorize('20.', Colors.WHITE)} Save Game")
-        print(f"  {colorize('21.', Colors.WHITE)} Quit Game")
-    else:
-        print(f"  {colorize('19.', Colors.WHITE)} Save Game")
-        print(f"  {colorize('20.', Colors.WHITE)} Quit Game")
-    print(colorize("=" * 50, Colors.BRIGHT_YELLOW))
-    
-    choice = input(f"\n{colorize('What do you do?', Colors.BRIGHT_CYAN)} ").strip()
-    return choice
+    """Eslania City main menu - modern nested UI"""
+    # Use modern UI by default
+    from .menus_refactored import eslania_city_menu_modern
+    return eslania_city_menu_modern(player)
 
 
 def perona_outpost_menu(player):
