@@ -47,6 +47,9 @@ def dev_menu(player):
         print(f"  {colorize('11.', Colors.WHITE)} View All Items")
         print(f"  {colorize('12.', Colors.WHITE)} View All Monsters")
         
+        print(f"\n{colorize('TESTING:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
+        print(f"  {colorize('13.', Colors.WHITE)} Combat Simulator (Loot Testing)")
+        
         print(f"\n{colorize('NAVIGATION:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
         print(f"  {colorize('0.', Colors.WHITE)} Back to Game")
         print(colorize("=" * 60, Colors.BRIGHT_MAGENTA))
@@ -77,6 +80,9 @@ def dev_menu(player):
             view_all_items()
         elif choice == '12':
             view_all_monsters()
+        elif choice == '13':
+            from .combat_simulator import combat_simulator
+            combat_simulator(player)
         elif choice == '0':
             break
         else:

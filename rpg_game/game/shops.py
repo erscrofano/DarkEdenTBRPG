@@ -844,27 +844,47 @@ def pimping_service(player):
                 if 1 <= choice_num <= len(weapon_talismans):
                     selected_talisman = weapon_talismans[choice_num - 1]
                     
-                    # Apply talisman bonuses to weapon
-                    if 'talisman_bonuses' not in player.weapon:
-                        player.weapon['talisman_bonuses'] = {}
+                    # Check if weapon already has a talisman
+                    had_talisman = 'talisman_bonuses' in player.weapon and player.weapon['talisman_bonuses']
                     
+                    if had_talisman:
+                        print(f"\n{colorize('⚠️', Colors.BRIGHT_YELLOW)} {colorize('This weapon already has a talisman applied!', Colors.YELLOW)}")
+                        print(f"{colorize('The new talisman will REPLACE the existing one.', Colors.YELLOW)}")
+                        confirm = input(f"\n{colorize('Continue? (y/n):', Colors.BRIGHT_CYAN)} ").strip().lower()
+                        if confirm != 'y':
+                            print(f"\n{colorize('❌ Cancelled', Colors.BRIGHT_RED)}")
+                            input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+                            continue
+                        
+                        # Need to recalculate HP loss from old talisman before replacing
+                        old_hp_bonus = player.weapon['talisman_bonuses'].get('bonus_hp', 0)
+                    else:
+                        old_hp_bonus = 0
+                    
+                    # REPLACE talisman bonuses (not stack)
+                    player.weapon['talisman_bonuses'] = {}
                     bonuses = player.weapon['talisman_bonuses']
-                    # Add or stack bonuses
+                    
                     for key in ['bonus_str', 'bonus_dex', 'bonus_agl', 'bonus_hp', 'bonus_defense']:
                         if key in selected_talisman:
-                            bonuses[key] = bonuses.get(key, 0) + selected_talisman[key]
+                            bonuses[key] = selected_talisman[key]
                     
                     # Remove talisman from inventory
                     remove_item_from_inventory(player.inventory, selected_talisman, 1)
                     
-                    # Recalculate max HP if HP bonus was added
+                    # Recalculate max HP
                     old_max_hp = player.max_hp
                     player.calculate_max_hp()
                     hp_gained = player.max_hp - old_max_hp
                     if hp_gained > 0:
                         player.hp += hp_gained
+                    elif hp_gained < 0:
+                        player.hp = max(1, player.hp + hp_gained)
                     
-                    success_msg = f"Successfully fused {selected_talisman['name']} with {player.weapon['name']}!"
+                    if had_talisman:
+                        success_msg = f"Replaced talisman on {player.weapon['name']} with {selected_talisman['name']}!"
+                    else:
+                        success_msg = f"Successfully fused {selected_talisman['name']} with {player.weapon['name']}!"
                     print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(success_msg, Colors.BRIGHT_GREEN)}")
                     input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
                 else:
@@ -948,27 +968,47 @@ def pimping_service(player):
                 if 1 <= choice_num <= len(armor_talismans):
                     selected_talisman = armor_talismans[choice_num - 1]
                     
-                    # Apply talisman bonuses to armor
-                    if 'talisman_bonuses' not in player.armor:
-                        player.armor['talisman_bonuses'] = {}
+                    # Check if armor already has a talisman
+                    had_talisman = 'talisman_bonuses' in player.armor and player.armor['talisman_bonuses']
                     
+                    if had_talisman:
+                        print(f"\n{colorize('⚠️', Colors.BRIGHT_YELLOW)} {colorize('This armor already has a talisman applied!', Colors.YELLOW)}")
+                        print(f"{colorize('The new talisman will REPLACE the existing one.', Colors.YELLOW)}")
+                        confirm = input(f"\n{colorize('Continue? (y/n):', Colors.BRIGHT_CYAN)} ").strip().lower()
+                        if confirm != 'y':
+                            print(f"\n{colorize('❌ Cancelled', Colors.BRIGHT_RED)}")
+                            input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
+                            continue
+                        
+                        # Need to track HP loss from old talisman
+                        old_hp_bonus = player.armor['talisman_bonuses'].get('bonus_hp', 0)
+                    else:
+                        old_hp_bonus = 0
+                    
+                    # REPLACE talisman bonuses (not stack)
+                    player.armor['talisman_bonuses'] = {}
                     bonuses = player.armor['talisman_bonuses']
-                    # Add or stack bonuses
+                    
                     for key in ['bonus_str', 'bonus_dex', 'bonus_agl', 'bonus_hp', 'bonus_defense']:
                         if key in selected_talisman:
-                            bonuses[key] = bonuses.get(key, 0) + selected_talisman[key]
+                            bonuses[key] = selected_talisman[key]
                     
                     # Remove talisman from inventory
                     remove_item_from_inventory(player.inventory, selected_talisman, 1)
                     
-                    # Recalculate max HP if HP bonus was added
+                    # Recalculate max HP
                     old_max_hp = player.max_hp
                     player.calculate_max_hp()
                     hp_gained = player.max_hp - old_max_hp
                     if hp_gained > 0:
                         player.hp += hp_gained
+                    elif hp_gained < 0:
+                        player.hp = max(1, player.hp + hp_gained)
                     
-                    success_msg = f"Successfully fused {selected_talisman['name']} with {player.armor['name']}!"
+                    if had_talisman:
+                        success_msg = f"Replaced talisman on {player.armor['name']} with {selected_talisman['name']}!"
+                    else:
+                        success_msg = f"Successfully fused {selected_talisman['name']} with {player.armor['name']}!"
                     print(f"\n{colorize('✅', Colors.BRIGHT_GREEN)} {colorize(success_msg, Colors.BRIGHT_GREEN)}")
                     input(f"\n{colorize('Press Enter to continue...', Colors.WHITE)}")
                 else:

@@ -277,8 +277,13 @@ class LocationHandlerService:
             dev_menu(self.player)
             return True, None
         
-        # Exploration
+        # General Store
         if choice == '1':
+            self.action_service.handle_shop_action('general_store')
+            return True, None
+        
+        # Exploration
+        if choice == '2':
             floors = {
                 'b1': {'level': 25, 'multiplier': 1.5},
                 'b2': {'level': 35, 'multiplier': 1.8},
@@ -290,7 +295,7 @@ class LocationHandlerService:
             return True, None
         
         # Travel
-        if choice == '2':
+        if choice == '3':
             travel_choice = locations_menu(self.player)
             if travel_choice and travel_choice != '7':
                 new_location, success = handle_travel(self.player, travel_choice, 'perona_outpost')
@@ -301,22 +306,22 @@ class LocationHandlerService:
             return True, None
         
         # Player info
-        if choice == '3':
+        if choice == '4':
             clear_screen()
             print(self.player.get_stats())
             input("\nPress Enter to continue...")
             return True, None
         
         # View actions
-        if choice == '4':
+        if choice == '5':
             self.action_service.handle_view_action('inventory')
             return True, None
-        if choice == '5':
+        if choice == '6':
             self.action_service.handle_view_action('achievements')
             return True, None
         
         # Stat allocation or save
-        if choice == '6':
+        if choice == '7':
             if self.player.stat_points > 0:
                 self.action_service.handle_stat_allocation()
             else:
@@ -326,7 +331,7 @@ class LocationHandlerService:
             return True, None
         
         # Save game
-        if choice == '7':
+        if choice == '8':
             if self.player.stat_points > 0:
                 success, message = self.action_service.handle_save_action()
                 print(f"\n{'✅' if success else '❌'} {message}")
@@ -341,7 +346,7 @@ class LocationHandlerService:
                 return False, None
         
         # Quit game
-        if choice == '8':
+        if choice == '9':
             if self.player.stat_points > 0:
                 save_choice = input("\n💾 Save before quitting? (y/n): ").strip().lower()
                 if save_choice == 'y':

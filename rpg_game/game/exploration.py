@@ -133,7 +133,8 @@ def explore_tepes_lair(player):
     lair_level = 1
     
     # Save player state before entering lair (for death penalty)
-    original_inventory = [item.copy() for item in player.inventory]
+    import copy
+    original_inventory = copy.deepcopy(player.inventory)
     original_gold = player.gold
     original_exp = player.exp
     original_hp = player.hp
@@ -235,7 +236,8 @@ def explore_tepes_lair(player):
                 print(f"  {colorize('Experience:', Colors.BRIGHT_YELLOW)} {lair_exp_gained}")
                 
                 # Restore player to pre-lair state
-                player.inventory = [item.copy() for item in original_inventory]
+                import copy
+                player.inventory = copy.deepcopy(original_inventory)
                 player.gold = original_gold
                 player.exp = original_exp
                 player.hp = REVIVE_HP  # Revive with 1 HP
@@ -335,7 +337,8 @@ def explore_multi_floor_dungeon(player, dungeon_name, floors, start_floor='b1'):
     dungeon_exp_gained = 0
     
     # Save player state before entering dungeon
-    original_inventory = [item.copy() for item in player.inventory]
+    import copy
+    original_inventory = copy.deepcopy(player.inventory)
     original_gold = player.gold
     original_exp = player.exp
     original_hp = player.hp
@@ -476,7 +479,8 @@ def explore_multi_floor_dungeon(player, dungeon_name, floors, start_floor='b1'):
                 print(f"\n{colorize('You have fallen in the dungeon!', Colors.BRIGHT_RED)}")
                 
                 # Restore player to pre-dungeon state
-                player.inventory = [item.copy() for item in original_inventory]
+                import copy
+                player.inventory = copy.deepcopy(original_inventory)
                 player.gold = original_gold
                 player.exp = original_exp
                 player.hp = REVIVE_HP  # Revive with 1 HP

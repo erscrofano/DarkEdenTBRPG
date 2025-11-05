@@ -133,12 +133,44 @@ def view_inventory(player):
         # Show equipped items
         print("\n" + colorize("EQUIPPED:", Colors.BRIGHT_WHITE + Colors.BOLD))
         if player.weapon:
-            print(f"{colorize('⚔️ Weapon:', Colors.WHITE)} {colorize(player.weapon['name'], Colors.BRIGHT_GREEN)} (+{colorize(str(player.weapon['attack']), Colors.BRIGHT_YELLOW)} Attack)")
+            weapon_stats = f"+{player.weapon['attack']} Attack"
+            if 'talisman_bonuses' in player.weapon and player.weapon['talisman_bonuses']:
+                bonuses = player.weapon['talisman_bonuses']
+                bonus_parts = []
+                if bonuses.get('bonus_defense', 0) > 0:
+                    bonus_parts.append(f"+{bonuses['bonus_defense']} DEF")
+                if bonuses.get('bonus_hp', 0) > 0:
+                    bonus_parts.append(f"+{bonuses['bonus_hp']} HP")
+                if bonuses.get('bonus_str', 0) > 0:
+                    bonus_parts.append(f"+{bonuses['bonus_str']} STR")
+                if bonuses.get('bonus_dex', 0) > 0:
+                    bonus_parts.append(f"+{bonuses['bonus_dex']} DEX")
+                if bonuses.get('bonus_agl', 0) > 0:
+                    bonus_parts.append(f"+{bonuses['bonus_agl']} AGL")
+                if bonus_parts:
+                    weapon_stats += f", {colorize(', '.join(bonus_parts), Colors.BRIGHT_MAGENTA)}"
+            print(f"{colorize('⚔️ Weapon:', Colors.WHITE)} {colorize(player.weapon['name'], Colors.BRIGHT_GREEN)} ({colorize(weapon_stats, Colors.BRIGHT_YELLOW)})")
         else:
             print(f"{colorize('⚔️ Weapon:', Colors.WHITE)} {colorize('None', Colors.WHITE)}")
         
         if player.armor:
-            print(f"{colorize('🛡️ Armor:', Colors.WHITE)} {colorize(player.armor['name'], Colors.BRIGHT_BLUE)} (+{colorize(str(player.armor['defense']), Colors.BRIGHT_YELLOW)} Defense)")
+            armor_stats = f"+{player.armor['defense']} Defense"
+            if 'talisman_bonuses' in player.armor and player.armor['talisman_bonuses']:
+                bonuses = player.armor['talisman_bonuses']
+                bonus_parts = []
+                if bonuses.get('bonus_defense', 0) > 0:
+                    bonus_parts.append(f"+{bonuses['bonus_defense']} DEF")
+                if bonuses.get('bonus_hp', 0) > 0:
+                    bonus_parts.append(f"+{bonuses['bonus_hp']} HP")
+                if bonuses.get('bonus_str', 0) > 0:
+                    bonus_parts.append(f"+{bonuses['bonus_str']} STR")
+                if bonuses.get('bonus_dex', 0) > 0:
+                    bonus_parts.append(f"+{bonuses['bonus_dex']} DEX")
+                if bonuses.get('bonus_agl', 0) > 0:
+                    bonus_parts.append(f"+{bonuses['bonus_agl']} AGL")
+                if bonus_parts:
+                    armor_stats += f", {colorize(', '.join(bonus_parts), Colors.BRIGHT_MAGENTA)}"
+            print(f"{colorize('🛡️ Armor:', Colors.WHITE)} {colorize(player.armor['name'], Colors.BRIGHT_BLUE)} ({colorize(armor_stats, Colors.BRIGHT_CYAN)})")
         else:
             print(f"{colorize('🛡️ Armor:', Colors.WHITE)} {colorize('None', Colors.WHITE)}")
         
@@ -490,22 +522,24 @@ def perona_outpost_menu(player):
     print("\n" + colorize("=" * 50, Colors.BRIGHT_BLUE))
     print(colorize("MAIN MENU", Colors.BRIGHT_BLUE + Colors.BOLD))
     print(colorize("=" * 50, Colors.BRIGHT_BLUE))
+    print(f"\n{colorize('SHOPS:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
+    print(f"  {colorize('1.', Colors.WHITE)} General Store")
     print(f"\n{colorize('EXPLORATION:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
-    print(f"  {colorize('1.', Colors.WHITE)} Asylion Dungeon {colorize('(PvE - Level 8+)', Colors.GRAY)}")
-    print(f"  {colorize('2.', Colors.WHITE)} Travel to Another Location")
+    print(f"  {colorize('2.', Colors.WHITE)} Asylion Dungeon {colorize('(PvE - Level 8+)', Colors.GRAY)}")
+    print(f"  {colorize('3.', Colors.WHITE)} Travel to Another Location")
     print(f"\n{colorize('CHARACTER:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
-    print(f"  {colorize('3.', Colors.WHITE)} View Stats")
-    print(f"  {colorize('4.', Colors.WHITE)} View Inventory")
-    print(f"  {colorize('5.', Colors.WHITE)} View Achievements {colorize(f'({len(player.achievements)} unlocked)', Colors.BRIGHT_MAGENTA)}")
+    print(f"  {colorize('4.', Colors.WHITE)} View Stats")
+    print(f"  {colorize('5.', Colors.WHITE)} View Inventory")
+    print(f"  {colorize('6.', Colors.WHITE)} View Achievements {colorize(f'({len(player.achievements)} unlocked)', Colors.BRIGHT_MAGENTA)}")
     if player.stat_points > 0:
-        print(f"  {colorize('6.', Colors.BRIGHT_YELLOW)} Allocate Stat Points {colorize(f'({player.stat_points} available)', Colors.BRIGHT_YELLOW + Colors.BOLD)}")
+        print(f"  {colorize('7.', Colors.BRIGHT_YELLOW)} Allocate Stat Points {colorize(f'({player.stat_points} available)', Colors.BRIGHT_YELLOW + Colors.BOLD)}")
     print(f"\n{colorize('GAME:', Colors.BRIGHT_WHITE + Colors.BOLD)}")
     if player.stat_points > 0:
+        print(f"  {colorize('8.', Colors.WHITE)} Save Game")
+        print(f"  {colorize('9.', Colors.WHITE)} Quit Game")
+    else:
         print(f"  {colorize('7.', Colors.WHITE)} Save Game")
         print(f"  {colorize('8.', Colors.WHITE)} Quit Game")
-    else:
-        print(f"  {colorize('6.', Colors.WHITE)} Save Game")
-        print(f"  {colorize('7.', Colors.WHITE)} Quit Game")
     print(colorize("=" * 50, Colors.BRIGHT_BLUE))
     
     choice = input(f"\n{colorize('What do you do?', Colors.BRIGHT_CYAN)} ").strip()

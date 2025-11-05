@@ -107,7 +107,7 @@ def list_save_slots():
             slot_name = match.group(1)
             # Try to load the save to get player info
             try:
-                with open(save_file, 'r') as f:
+                with open(save_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     player_name = data.get('name', 'Unknown')
                     level = data.get('level', 0)
@@ -169,8 +169,8 @@ def save_game(player, slot_name=None):
             shutil.copy2(paths['save'], paths['backup'])
         
         # Write to temp file first
-        with open(paths['temp'], 'w') as f:
-            json.dump(data, f, indent=2)
+        with open(paths['temp'], 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
         
         # Atomic replace
         if platform.system() == 'Windows':
@@ -220,7 +220,7 @@ def load_game(slot_name=None):
         # Try main save file first
         if paths['save'].exists():
             try:
-                with open(paths['save'], 'r') as f:
+                with open(paths['save'], 'r', encoding='utf-8') as f:
                     raw_data = json.load(f)
                 
                 # Validate JSON schema before deserialization
@@ -245,7 +245,7 @@ def load_game(slot_name=None):
                 print(f"\n{colorize('⚠️', Colors.YELLOW)} {colorize('Main save file corrupted. Attempting backup...', Colors.WHITE)}")
                 if paths['backup'].exists():
                     try:
-                        with open(paths['backup'], 'r') as f:
+                        with open(paths['backup'], 'r', encoding='utf-8') as f:
                             raw_data = json.load(f)
                         
                         # Validate JSON schema before deserialization
